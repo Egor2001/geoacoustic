@@ -1,3 +1,9 @@
+# Custom
+!.gitignore
+build/
+docs/
+!docs/CMakeLists.txt
+
 # Prerequisites
 *.d
 
