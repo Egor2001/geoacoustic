@@ -17,7 +17,7 @@ enum ESide
     SIDE_CNT
 };
 
-enum ESide
+enum EEdge
 {
     EDGE_X0_Y0, EDGE_X1_Y0, EDGE_X0_Y1, EDGE_X1_Y1,
     EDGE_X0_Z0, EDGE_X1_Z0, EDGE_X0_Z1, EDGE_X1_Z1,
@@ -56,17 +56,30 @@ int3_t operator - (const int3_t& lhs, const int3_t& rhs)
     return (res -= rhs);
 }
 
-int_t& operator [] (int3_t& lhs, int_t idx)
+real3_t& operator += (real3_t& lhs, const real3_t& rhs)
 {
-    return *(reinterpret_cast<int_t*>(&lhs) + idx);
+    lhs.x += rhs.x; lhs.y += rhs.y; lhs.z += rhs.z;
+    return lhs;
 }
 
-
-const int_t& operator [] (const int3_t& lhs, int_t idx)
+real3_t& operator -= (real3_t& lhs, const real3_t& rhs)
 {
-    return const_cast<int3_t&>(lhs)[idx];
+    lhs.x -= rhs.x; lhs.y -= rhs.y; lhs.z -= rhs.z;
+    return lhs;
 }
 
-}; // namespace geo
+real3_t operator + (const real3_t& lhs, const real3_t& rhs)
+{
+    auto res = lhs;
+    return (res += rhs);
+}
+
+real3_t operator - (const real3_t& lhs, const real3_t& rhs)
+{
+    auto res = lhs;
+    return (res -= rhs);
+}
+
+} // namespace geo
 
 #endif // GEOACOUSTIC_TYPES_HPP_

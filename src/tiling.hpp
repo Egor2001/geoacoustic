@@ -1,54 +1,69 @@
 #ifndef GEOACOUSTIC_TILING_HPP_
 #define GEOACOUSTIC_TILING_HPP_
 
+#include <vector>
+#include <algorithm>
+
 #include "types.hpp"
 #include "stencil.hpp"
-#include "cube_view.hpp"
+#include "cube.hpp"
 #include "stencil.hpp"
+#include "domain.hpp"
+#include "grid.hpp"
 
 namespace geo {
 
 class Tiling
 {
 public:
-    explicit Tiling(Stencil stencil):
-        stencil_{std::move(stencil)}
+    struct Tile
+    {
+        int3_t idx3;
+
+        void process(Domain& next, Domain& cur, Stencil& stencil)
+        {
+            int_t rank = next.cubes_rank();
+            static_cast<CubeView>(next.at(idx3))
+                .apply(rank, stencil, cur.at(idx3),
+                        cur.at(idx3 + int3_t{-1, 0, 0}), // x0
+                        cur.at(idx3 + int3_t{0, -1, 0}), // y0
+                        cur.at(idx3 + int3_t{0, 0, -1}), // z0
+                        cur.at(idx3 + int3_t{+1, 0, 0}), // x1
+                        cur.at(idx3 + int3_t{0, +1, 0}), // y1
+                        cur.at(idx3 + int3_t{0, 0, +1})  // z1
+                    );
+        }
+    };
+
+    explicit Tiling(int3_t dim3):
+        dim3_{dim3}
     {}
 
-    // TODO(@geome_try): 
-    //  - to implement versions with less parameters count
-    //  - to change CubeView's interface to avoid passing rank with it
-    void apply(int_t rank, CubeView next, CubeView cur, 
-            CubeView x0, CubeView y0, CubeView z0, 
-            CubeView x1, CubeView y1, CubeView z1)
+    Grid<Tiling> grid() const
     {
-        if (rank > 0)
+        std::vector<Tile> tiles;
+        for (int_t z = 0; z < dim3_.z; ++z)
+        for (int_t y = 0; y < dim3_.y; ++y)
+        for (int_t x = 0; x < dim3_.x; ++x)
+            tiles.push_back(Tile{/* cube_idx3_ = */ {x, y, z}});
+
+        auto tiles_comp = [](const Tile& lhs, const Tile& rhs) -> bool
         {
-            #pragma unroll
-            for (int_t idx = 0; idx < CORNER_CNT/* = 8 */; ++idx)
-            {
-                apply(rank - 1, next[idx], cur[idx],
-                        // this corner's x0, y0, z0
-                        ((idx & 1) == 0 ? x0[idx ^ 1] : cur[idx ^ 1]),
-                        ((idx & 2) == 0 ? y0[idx ^ 2] : cur[idx ^ 2]),
-                        ((idx & 4) == 0 ? z0[idx ^ 4] : cur[idx ^ 4]),
-                        // this corner's x1, y1, z1
-                        ((idx & 1) == 0 ? cur[idx ^ 1] : x1[idx ^ 1]),
-                        ((idx & 2) == 0 ? cur[idx ^ 2] : y1[idx ^ 2]),
-                        ((idx & 4) == 0 ? cur[idx ^ 4] : z1[idx ^ 4])
-                    ); // process()
-            }
-        }
-        else
-        {
-            stencil.apply(next.data[0], cur.data[0], 
-                    x0.data[0], y0.data[0], z0.data[0], 
-                    x1.data[0], y1.data[0], z1.data[0]);
-        }
+            return std::greater{}(
+                    std::make_tuple(lhs.idx3.x + lhs.idx3.y + lhs.idx3.z, 
+                        -lhs.idx3.z, -lhs.idx3.y, -lhs.idx3.x),
+                    std::make_tuple(rhs.idx3.x + rhs.idx3.y + rhs.idx3.z, 
+                        -rhs.idx3.z, -rhs.idx3.y, -rhs.idx3.x)
+                );
+        };
+
+        std::stable_sort(std::begin(tiles), std::end(tiles), tiles_comp);
+
+        return Grid<Tiling>(std::move(tiles));
     }
 
 private:
-    Stencil stencil_;
+    int3_t dim3_;
 };
 
 } // namespace geo

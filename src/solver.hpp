@@ -16,14 +16,13 @@ public:
     // TODO(@geome_try): to add context
     Solver(int3_t dim3, int_t cubes_rank, Stencil stencil):
         /* context */
-        domains_{},
-        tiling_(std::move(stencil))
+        domains_{{ Domain(dim3, cubes_rank), Domain(dim3, cubes_rank) }},
+        tiling_(dim3),
+        grid_{tiling_.grid()},
+        stencil_{std::move(stencil)}
     {
         assert(dim3.x > 0 && dim3.y > 0 && dim3.z > 0);
         assert(cubes_rank >= 0);
-
-        domains_[0] = Domain(dim3, cubes_rank);
-        domains_[1] = Domain(dim3, cubes_rank);
     }
 
     // TODO(@geome_try): to add const version
@@ -32,18 +31,19 @@ public:
         return domains_[0];
     }
 
-    void apply(int_t time_ticks)
+    void process(int_t time_ticks)
     {
-        for (int_t step = 0; step < time_ticks; ++step)
-        {
-            tiling.apply(&domains_[0], &domains_[1]);
+        grid_.process(domains_[0], domains_[1], stencil_, time_ticks);
+
+        if (time_ticks %2 == 1)
             std::swap(domains_[0], domains_[1]);
-        }
     }
 
 private:
     std::array<Domain, 2> domains_;
     Tiling tiling_;
+    Grid<Tiling> grid_;
+    Stencil stencil_;
 };
 
 } // namespace geo

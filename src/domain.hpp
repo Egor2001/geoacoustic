@@ -14,11 +14,16 @@ class Domain
 {
 public:
     Domain(int3_t dim3, int_t cubes_rank):
-        dims_{dim3 + int3_t{2, 2, 2}}, // add ghost cubes at {-1, dim}^3
+        dim3_{dim3 + int3_t{2, 2, 2}}, // add ghost cubes at {-1, dim}^3
         cubes_rank_{cubes_rank},
-        cubes_(dim3_.x * dim3_.y * dim3_.z, Cube(cubes_rank))
+        cubes_{}
     {
         assert(dim3_.x > 0 && dim3_.y > 0 && dim3_.z > 0);
+
+        int_t cubes_cnt = dim3_.x * dim3_.y * dim3_.z;
+        cubes_.reserve(cubes_cnt);
+        for (int_t idx = 0; idx < cubes_cnt; ++idx)
+            cubes_.emplace_back(cubes_rank);
     }
 
     int_t cubes_rank() const
@@ -34,8 +39,8 @@ public:
     Cube& at(int3_t idx3) // const
     {
         idx3 += {1, 1, 1}; // shift because of ghost cubes
-        assert(idx3_.x > 0 && idx3_.y > 0 && idx3_.z > 0 && 
-               dim3_.x > idx3_.x && dim3_.y > idx3_.y && dim3_.z > idx3_.z);
+        assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
+               dim3_.x > idx3.x && dim3_.y > idx3.y && dim3_.z > idx3.z);
 
         return cubes_[dim3_.x * dim3_.y * idx3.z + dim3_.x * idx3.y + idx3.x];
     }
