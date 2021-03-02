@@ -49,12 +49,11 @@ public:
 
         auto tiles_comp = [](const Tile& lhs, const Tile& rhs) -> bool
         {
-            return std::greater{}(
-                    std::make_tuple(lhs.idx3.x + lhs.idx3.y + lhs.idx3.z, 
-                        -lhs.idx3.z, -lhs.idx3.y, -lhs.idx3.x),
-                    std::make_tuple(rhs.idx3.x + rhs.idx3.y + rhs.idx3.z, 
-                        -rhs.idx3.z, -rhs.idx3.y, -rhs.idx3.x)
-                );
+            return 
+                std::make_tuple(lhs.idx3.x + lhs.idx3.y + lhs.idx3.z, 
+                        -lhs.idx3.z, -lhs.idx3.y, -lhs.idx3.x) >
+                std::make_tuple(rhs.idx3.x + rhs.idx3.y + rhs.idx3.z, 
+                        -rhs.idx3.z, -rhs.idx3.y, -rhs.idx3.x);
         };
 
         std::stable_sort(std::begin(tiles), std::end(tiles), tiles_comp);

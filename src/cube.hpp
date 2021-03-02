@@ -36,7 +36,7 @@ struct CubeView
         if (cur_rank > 0)
         {
 #if defined(__GNUG__)
-            #pragma GCC unroll 8
+            #pragma GCC unroll(8)
 #elif defined(__clang__) or defined(__INTEL_COMPILER)
             #pragma unroll
 #endif

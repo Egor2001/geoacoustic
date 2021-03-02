@@ -57,6 +57,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
                         -Wno-padded
                         -Wno-weak-vtables
                         -Wno-documentation
+                        -Wno-unknown-pragmas
                         )
 
 else()

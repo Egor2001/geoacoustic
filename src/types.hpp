@@ -11,6 +11,16 @@ using real_t = double;
 struct int3_t { int_t x, y, z; };
 struct real3_t { real_t x, y, z; };
 
+int3_t& operator += (int3_t&, const int3_t&);
+int3_t& operator -= (int3_t&, const int3_t&);
+int3_t operator + (const int3_t&, const int3_t&);
+int3_t operator - (const int3_t&, const int3_t&);
+
+real3_t& operator += (real3_t&, const real3_t&);
+real3_t& operator -= (real3_t&, const real3_t&);
+real3_t operator + (const real3_t&, const real3_t&);
+real3_t operator - (const real3_t&, const real3_t&);
+
 enum ESide
 {
     SIDE_X0, SIDE_X1, SIDE_Y0, SIDE_Y1, SIDE_Z0, SIDE_Z1,
