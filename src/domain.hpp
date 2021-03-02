@@ -2,7 +2,7 @@
 #define GEOACOUSTIC_DOMAIN_HPP_
 
 // TODO(@geome_try): to add store / load from stream
-// #include <istream>
+#include <iostream>
 #include <cassert>
 
 #include "types.hpp"
@@ -33,7 +33,7 @@ public:
 
     int3_t dim3() const
     {
-        return dim3_;
+        return dim3_ + int3_t{-2, -2, -2};
     }
 
     Cube& at(int3_t idx3) // const
@@ -51,8 +51,26 @@ public:
     }
 
     // TODO(@geome_try):
-    // static Domain load(std::istream& stream);
-    // static Domain store(std::ostream& stream);
+    bool load(std::istream& stream)
+    {
+        for (int_t z = 0; z < dim3_.z - 2; ++z)
+        for (int_t y = 0; y < dim3_.y - 2; ++y)
+        for (int_t x = 0; x < dim3_.x - 2; ++x)
+        {
+            if (this->at({x, y, z}).load(stream) == false)
+                return false;
+        }
+
+        return true;
+    }
+
+    void store(std::ostream& stream) const
+    {
+        for (int_t z = 0; z < dim3_.z - 2; ++z)
+        for (int_t y = 0; y < dim3_.y - 2; ++y)
+        for (int_t x = 0; x < dim3_.x - 2; ++x)
+            this->at({x, y, z}).store(stream);
+    }
 
 private:
     int3_t dim3_;

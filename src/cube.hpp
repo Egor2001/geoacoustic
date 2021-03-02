@@ -2,6 +2,7 @@
 #define GEOACOUSTIC_CUBE_HPP_
 
 #include <vector>
+#include <iostream>
 
 #include <cassert>
 
@@ -86,6 +87,20 @@ public:
     CubeType type() const
     {
         return type_;
+    }
+
+    bool load(std::istream& stream)
+    {
+        for (auto& cell : cells_)
+            stream >> cell;
+
+        return true;
+    }
+
+    void store(std::ostream& stream) const
+    {
+        for (const auto& cell : cells_)
+            stream << cell;
     }
 
 protected:
