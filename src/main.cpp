@@ -10,7 +10,7 @@ using namespace geo;
 int main()
 {
     using TCell = LinearCell;
-    static constexpr int_t NTileRank = 0;
+    static constexpr int_t NTileRank = 1;
 
     int3_t grid_size = {2, 2, 2};
     int_t steps_cnt = 10;
@@ -18,7 +18,7 @@ int main()
     Config<TCell> cfg(grid_size, steps_cnt);
 
     cfg.dspace = 0.1; 
-    cfg.dtime = 0.1; 
+    cfg.dtime = 0.02; 
 
     Solver<TCell, NTileRank> solver(cfg, std::cin, std::cin);
 

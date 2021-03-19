@@ -1,5 +1,6 @@
 # Custom
 !.gitignore
+bin/
 build/
 docs/
 !docs/CMakeLists.txt
