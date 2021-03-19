@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdio>
 
+#include "macro.hpp"
 #include "types.hpp"
 
 namespace geo {
@@ -26,12 +27,16 @@ public:
     {
         idx3 += int3_t{1, 1, 1};
         dim3 += int3_t{2, 2, 2};
-        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
-                static_cast<long long int>(idx3.x), 
-                static_cast<long long int>(idx3.y), 
-                static_cast<long long int>(idx3.z));
-        assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
-               idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z);
+        GEO_ON_DEBUG(
+            fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                    static_cast<long long int>(idx3.x), 
+                    static_cast<long long int>(idx3.y), 
+                    static_cast<long long int>(idx3.z))
+            );
+        GEO_ON_DEBUG(
+            assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
+                   idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z)
+            );
 
         return data_ + (idx3.x + dim3.x * idx3.y + dim3.x * dim3.y * idx3.z);
     }
@@ -63,12 +68,16 @@ public:
     {
         idx3 += int3_t{1, 1, 1};
         dim3 += int3_t{2, 2, 2};
-        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
-                static_cast<long long int>(idx3.x), 
-                static_cast<long long int>(idx3.y), 
-                static_cast<long long int>(idx3.z));
-        assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
-               idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z);
+        GEO_ON_DEBUG(
+            fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                    static_cast<long long int>(idx3.x), 
+                    static_cast<long long int>(idx3.y), 
+                    static_cast<long long int>(idx3.z))
+            );
+        GEO_ON_DEBUG(
+            assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
+                   idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z)
+            );
 
         return data_ + (idx3.x + dim3.x * idx3.y + dim3.x * dim3.y * idx3.z);
     }
@@ -91,7 +100,7 @@ public:
     explicit VolumeArray(int3_t dim3):
         dim3_{dim3}, data_{}
     {
-        assert(dim3_.x > 0 && dim3_.y > 0 && dim3_.z > 0);
+        GEO_ON_DEBUG(assert(dim3_.x > 0 && dim3_.y > 0 && dim3_.z > 0));
 
         dim3_ += int3_t{2, 2, 2};
         data_.resize(dim3_.z * dim3_.y * dim3_.x); 
@@ -105,12 +114,16 @@ public:
     TData& operator [] (int3_t idx3)
     {
         idx3 += int3_t{1, 1, 1};
-        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
-                static_cast<long long int>(idx3.x), 
-                static_cast<long long int>(idx3.y), 
-                static_cast<long long int>(idx3.z));
-        assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
-               idx3.x < dim3_.x && idx3.y < dim3_.y && idx3.z < dim3_.z);
+        GEO_ON_DEBUG(
+            fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                    static_cast<long long int>(idx3.x), 
+                    static_cast<long long int>(idx3.y), 
+                    static_cast<long long int>(idx3.z))
+            );
+        GEO_ON_DEBUG(
+            assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
+                   idx3.x < dim3_.x && idx3.y < dim3_.y && idx3.z < dim3_.z)
+            );
 
         return data_[idx3.x + dim3_.x * idx3.y + dim3_.x * dim3_.y * idx3.z];
     }

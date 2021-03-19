@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "macro.hpp"
 #include "types.hpp"
 #include "config.hpp"
 #include "context.hpp"
@@ -146,7 +147,7 @@ void tile_proc(int3_t idx3, const Config<TCell>& cfg,
             return;
         }
 
-        fprintf(stderr, "CELL PROC!\n");
+        GEO_ON_DEBUG(fprintf(stderr, "CELL PROC!\n"));
         CellLayout<TCell>::cell_proc(idx3, cfg, ampl_next, ampl);
     }
     else

@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "macro.hpp"
+
 namespace geo {
 
 using int_t = int64_t;

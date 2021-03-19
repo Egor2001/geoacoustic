@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 
+#include "macro.hpp"
 #include "types.hpp"
 #include "config.hpp"
 #include "context.hpp"
@@ -18,10 +19,12 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
     static constexpr int_t NTileSize = 1 << NTileRank;
 
     // config needs to be adjusted before processing
-    assert(cfg.grid_size.x % NTileSize == 0 && 
-           cfg.grid_size.y % NTileSize == 0 &&
-           cfg.grid_size.z % NTileSize == 0);
-    assert(cfg.steps_cnt % NTileSize == 0);
+    GEO_ON_DEBUG(
+        assert(cfg.grid_size.x % NTileSize == 0 && 
+               cfg.grid_size.y % NTileSize == 0 &&
+               cfg.grid_size.z % NTileSize == 0)
+        );
+    GEO_ON_DEBUG(assert(cfg.steps_cnt % NTileSize == 0));
 
     // prepare data views for tiling routine
     VolumeSpan<TCell> ampl = ctx.ampl.span();
@@ -31,7 +34,7 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
     {
         // process grid depending on tiling
         tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
-        fprintf(stderr, "NEXT STEP!\n");
+        GEO_ON_DEBUG(fprintf(stderr, "NEXT STEP!\n"));
 
         if constexpr (NTileRank == 0)
         {
