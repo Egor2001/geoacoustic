@@ -1,78 +1,42 @@
-#ifndef GEOACOUSTIC_SOLVER_HPP_
-#define GEOACOUSTIC_SOLVER_HPP_
+#ifndef GEOACOUSTIC_STATIC_SOLVER_HPP_
+#define GEOACOUSTIC_STATIC_SOLVER_HPP_
 
-#include <cassert>
+#include <iostream>
 
 #include "types.hpp"
-#include "tiling.hpp"
-#include "stencil.hpp"
-#include "general.hpp"
+#include "config.hpp"
+#include "cell_layout.hpp"
+#include "grid_proc.hpp"
 
 namespace geo {
 
-template<int_t NCubeRank>
+template<typename TCell, int_t NTileRank>
 class Solver
 {
 public:
-    static_assert(NCubeRank >= 0);
-    static constexpr int_t NCubeSide = 1 << NCubeRank;
+    explicit Solver(Config<TCell> cfg) :
+        cfg_{std::move(cfg)},
+        ctx_{create_context(cfg_)}
+    {}
 
-    // TODO(@geome_try): to add context
-    Solver(Config config, Stencil stencil):
-        stencil_{std::move(stencil)},
-        config_{std::move(config)},
-        domains_{{ 
-            std::vector<Cell>(config_.dim3.x + config_.dim3.y + config_.dim3.z),
-            std::vector<Cell>(config_.dim3.x + config_.dim3.y + config_.dim3.z) 
-        }},
-        tiles_{create_grid<NCubeRank>(config_.dim3)}
+    Solver(Config<TCell> cfg, std::istream& cfg_in, std::istream& ctx_in) :
+        Solver(std::move(cfg))
     {
-        assert(config_.dim3.x > 0 && config_.dim3.x % NCubeSide == 0 && 
-               config_.dim3.y > 0 && config_.dim3.y % NCubeSide == 0 && 
-               config_.dim3.z > 0 && config_.dim3.z % NCubeSide == 0);
-
-        config_.tiles = tiles_.data();
-        config_.tiles_cnt = tiles_.size();
-
-        gh_x0_.resize(config_.dim3.y * config_.dim3.z);
-        gh_x1_.resize(config_.dim3.y * config_.dim3.z);
-
-        gh_y0_.resize(config_.dim3.x * config_.dim3.z);
-        gh_y1_.resize(config_.dim3.x * config_.dim3.z);
-
-        gh_z0_.resize(config_.dim3.x * config_.dim3.y);
-        gh_z1_.resize(config_.dim3.x * config_.dim3.y);
-
-        config_.gh_x0_data = gh_x0_.data(); config_.gh_x1_data = gh_x1_.data();
-        config_.gh_y0_data = gh_y0_.data(); config_.gh_y1_data = gh_y1_.data();
-        config_.gh_z0_data = gh_z0_.data(); config_.gh_z1_data = gh_z1_.data();
+        CellLayout<TCell>::load(cfg_.grid_size, cfg_.bulk.span(), cfg_in);
+        CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), ctx_in);
     }
 
-    // TODO(@geome_try): to add const version
-    std::vector<Cell>& domain()
+    void proc(std::ostream& out)
     {
-        return domains_[0];
-    }
-
-    void process(int_t ticks_cnt)
-    {
-        config_.ticks_cnt = ticks_cnt;
-        domain_proc<NCubeRank>(stencil_, config_, 
-                domains_[0].data(), domains_[1].data());
-
-        if (ticks_cnt %2 == 1)
-            std::swap(domains_[0], domains_[1]);
+        grid_proc<TCell, NTileRank>(cfg_, ctx_);
+        CellLayout<TCell>::store(cfg_.grid_size, ctx_.ampl_next.span(), out);
     }
 
 private:
-    Stencil stencil_;
-    Config config_;
-    std::array<std::vector<Cell>, 2> domains_;
-    std::vector<int3_t> tiles_;
-    std::vector<Cell> gh_x0_, gh_y0_, gh_z0_;
-    std::vector<Cell> gh_x1_, gh_y1_, gh_z1_;
+    Config<TCell> cfg_;
+    Context<TCell> ctx_;
 };
 
 } // namespace geo
 
-#endif // GEOACOUSTIC_SOLVER_HPP_
+#endif // GEOACOUSTIC_STATIC_SOLVER_HPP_

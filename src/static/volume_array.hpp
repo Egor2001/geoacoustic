@@ -1,10 +1,12 @@
 #ifndef GEOACOUSTIC_STATIC_VOLUME_ARRAY_HPP_
 #define GEOACOUSTIC_STATIC_VOLUME_ARRAY_HPP_
 
-#include "types.hpp"
-
+#include <vector>
 // TODO(@geome_try): to replace with the custom assert
 #include <cassert>
+#include <cstdio>
+
+#include "types.hpp"
 
 namespace geo {
 
@@ -13,7 +15,7 @@ template<typename TData>
 class VolumeConstSpan
 {
 public:
-    explicit VolumeSpan(const TData* data):
+    explicit VolumeConstSpan(const TData* data):
         data_{data}
     {}
 
@@ -24,10 +26,14 @@ public:
     {
         idx3 += int3_t{1, 1, 1};
         dim3 += int3_t{2, 2, 2};
+        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                static_cast<long long int>(idx3.x), 
+                static_cast<long long int>(idx3.y), 
+                static_cast<long long int>(idx3.z));
         assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
                idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z);
 
-        return data_[idx3.x + dim3_.x * idx3.y + dim3_.x * dim3_.y * idx3.z];
+        return data_ + (idx3.x + dim3.x * idx3.y + dim3.x * dim3.y * idx3.z);
     }
 
 private:
@@ -48,16 +54,23 @@ public:
     const TData& operator * () const { return *data_; }
     const TData* operator -> () const { return data_; }
 
-    operator VolumeConstSpan() { return VolumeConstSpan{data_}; }
+    operator VolumeConstSpan<TData> () 
+    { 
+        return VolumeConstSpan<TData>{data_}; 
+    }
 
     TData* at(int3_t dim3, int3_t idx3)
     {
         idx3 += int3_t{1, 1, 1};
         dim3 += int3_t{2, 2, 2};
+        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                static_cast<long long int>(idx3.x), 
+                static_cast<long long int>(idx3.y), 
+                static_cast<long long int>(idx3.z));
         assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
                idx3.x < dim3.x && idx3.y < dim3.y && idx3.z < dim3.z);
 
-        return data_[idx3.x + dim3_.x * idx3.y + dim3_.x * dim3_.y * idx3.z];
+        return data_ + (idx3.x + dim3.x * idx3.y + dim3.x * dim3.y * idx3.z);
     }
 
     const TData* at(int3_t dim3, int3_t idx3) const
@@ -92,6 +105,10 @@ public:
     TData& operator [] (int3_t idx3)
     {
         idx3 += int3_t{1, 1, 1};
+        fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
+                static_cast<long long int>(idx3.x), 
+                static_cast<long long int>(idx3.y), 
+                static_cast<long long int>(idx3.z));
         assert(idx3.x >= 0 && idx3.y >= 0 && idx3.z >= 0 && 
                idx3.x < dim3_.x && idx3.y < dim3_.y && idx3.z < dim3_.z);
 
@@ -100,17 +117,17 @@ public:
 
     const TData& operator [] (int3_t idx3) const
     {
-        return const_cast<VolumeSpan*>(this)->operator[](idx3);
+        return const_cast<VolumeArray*>(this)->operator[](idx3);
     }
 
-    VolumeSpan span()
+    VolumeSpan<TData> span()
     {
-        return VolumeSpan{data_.data()};
+        return VolumeSpan<TData>{data_.data()};
     }
 
-    VolumeConstSpan span() const
+    VolumeConstSpan<TData> span() const
     {
-        return VolumeConstSpan{data_.data()};
+        return VolumeConstSpan<TData>{data_.data()};
     }
 
 private:
