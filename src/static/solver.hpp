@@ -34,9 +34,52 @@ public:
         return ctx_;
     }
 
-    void load_ctx(std::istream& from)
+    void load_bulk(std::istream& stream)
     {
-        CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), from);
+        CellLayout<TCell>::load(cfg_.grid_size, cfg_.bulk.span(), 
+                                stream);
+    }
+
+    void load_rho(std::istream& stream)
+    {
+        CellLayout<TCell>::load(cfg_.grid_size, cfg_.rho.span(), 
+                                stream);
+    }
+
+    void fill_bulk(std::function<real_t(int3_t, int3_t)> func)
+    {
+        CellLayout<TCell>::fill(cfg_.grid_size, cfg_.bulk.span(), 
+                                std::move(func));
+    }
+
+    void fill_rho(std::function<real_t(int3_t, int3_t)> func)
+    {
+        CellLayout<TCell>::fill(cfg_.grid_size, cfg_.rho.span(), 
+                                std::move(func));
+    }
+
+    void load_init(std::istream& stream)
+    {
+        CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), 
+                                stream);
+    }
+
+    void fill_init(std::function<real_t(int3_t, int3_t)> func)
+    {
+        CellLayout<TCell>::fill(cfg_.grid_size, ctx_.ampl.span(), 
+                                std::move(func));
+    }
+
+    void store_result(std::ostream& stream) const
+    {
+        CellLayout<TCell>::store(cfg_.grid_size, ctx_.ampl_next.span(), 
+                                 stream);
+    }
+
+    void read_result(std::function<void(int3_t, int3_t, real_t)> func) const
+    {
+        CellLayout<TCell>::read(cfg_.grid_size, ctx_.ampl_next.span(), 
+                                std::move(func));
     }
 
 private:

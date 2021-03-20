@@ -1,6 +1,9 @@
 #ifndef GEOACOUSTIC_STATIC_CONFIG_HPP_
 #define GEOACOUSTIC_STATIC_CONFIG_HPP_
 
+#include <iostream>
+#include <functional>
+
 #include "types.hpp"
 #include "volume_array.hpp"
 

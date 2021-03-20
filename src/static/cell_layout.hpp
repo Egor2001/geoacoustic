@@ -41,6 +41,18 @@ struct CellLayout<LinearCell>
     {
         linear_cell_store(grid_size, span, stream);
     }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        linear_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        linear_cell_read(grid_size, span, std::move(func));
+    }
 };
 
 template<>
@@ -69,6 +81,18 @@ struct CellLayout<ZCube2Cell>
     {
         zcube2_cell_store(grid_size, span, stream);
     }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        zcube2_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        zcube2_cell_read(grid_size, span, std::move(func));
+    }
 };
 
 template<>
@@ -96,6 +120,18 @@ struct CellLayout<VectorCell>
                       std::ostream& stream)
     {
         vector_cell_store(grid_size, span, stream);
+    }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        vector_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        vector_cell_read(grid_size, span, std::move(func));
     }
 };
 

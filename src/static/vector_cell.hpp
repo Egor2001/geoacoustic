@@ -2,6 +2,7 @@
 #define GEOACOUSTIC_STATIC_VECTOR_CELL_HPP_
 
 #include <iostream>
+#include <functional>
 #include <immintrin.h>
 
 #include "types.hpp"
@@ -29,6 +30,11 @@ void vector_cell_load(int3_t dim3, VolumeSpan<VectorCell> span,
                       std::istream& stream);
 void vector_cell_store(int3_t dim3, VolumeConstSpan<VectorCell> span, 
                        std::ostream& stream);
+
+void vector_cell_fill(int3_t dim3, VolumeSpan<VectorCell> span, 
+                      std::function<real_t(int3_t, int3_t)> func);
+void vector_cell_read(int3_t dim3, VolumeConstSpan<VectorCell> span, 
+                      std::function<void(int3_t, int3_t, real_t)> func);
 
 inline __attribute__((always_inline)) 
 void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
@@ -161,9 +167,10 @@ void vector_cell_test_proc(int3_t idx3, const Config<VectorCell>& cfg,
 void vector_cell_load(int3_t dim3, VolumeSpan<VectorCell> span, 
                       std::istream& stream)
 {
-    for (int_t z = 0; z < (4 * dim3.z); ++z)
-    for (int_t y = 0; y < dim3.y; ++y)
-    for (int_t x = 0; x < dim3.x; ++x)
+    int3_t grid_size = {dim3.x, dim3.y, 4 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
     {
         stream >> span.at(dim3, int3_t{x, y, z / 4})->arr[z % 4];
     }
@@ -172,11 +179,38 @@ void vector_cell_load(int3_t dim3, VolumeSpan<VectorCell> span,
 void vector_cell_store(int3_t dim3, VolumeConstSpan<VectorCell> span, 
                        std::ostream& stream)
 {
-    for (int_t z = 0; z < (4 * dim3.z); ++z)
-    for (int_t y = 0; y < dim3.y; ++y)
-    for (int_t x = 0; x < dim3.x; ++x)
+    int3_t grid_size = {dim3.x, dim3.y, 4 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
     {
         stream << span.at(dim3, int3_t{x, y, z / 4})->arr[z % 4] << ' ';
+    }
+}
+
+void vector_cell_fill(int3_t dim3, VolumeSpan<VectorCell> span, 
+                      std::function<real_t(int3_t, int3_t)> func)
+{
+    int3_t grid_size = {dim3.x, dim3.y, 4 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
+    {
+        int3_t idx3 = int3_t{x, y, z};
+        span.at(dim3, int3_t{x, y, z / 4})->arr[z % 4] = func(grid_size, idx3);
+    }
+}
+
+void vector_cell_read(int3_t dim3, VolumeConstSpan<VectorCell> span, 
+                      std::function<void(int3_t, int3_t, real_t)> func)
+{
+    int3_t grid_size = {dim3.x, dim3.y, 4 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
+    {
+        int3_t idx3 = int3_t{x, y, z};
+        func(grid_size, idx3, span.at(dim3, int3_t{x, y, z / 4})->arr[z % 4]);
     }
 }
 

@@ -1,6 +1,9 @@
 #ifndef GEOACOUSTIC_STATIC_ZCUBE2_CELL_HPP_
 #define GEOACOUSTIC_STATIC_ZCUBE2_CELL_HPP_
 
+#include <iostream>
+#include <functional>
+
 #include "types.hpp"
 
 namespace geo {
@@ -21,6 +24,11 @@ void zcube2_cell_load(int3_t dim3, VolumeSpan<ZCube2Cell> span,
                       std::istream& stream);
 void zcube2_cell_store(int3_t dim3, VolumeConstSpan<ZCube2Cell> span, 
                        std::ostream& stream);
+
+void zcube2_cell_fill(int3_t dim3, VolumeSpan<ZCube2Cell> span, 
+                      std::function<real_t(int3_t, int3_t)> func);
+void zcube2_cell_read(int3_t dim3, VolumeConstSpan<ZCube2Cell> span, 
+                      std::function<void(int3_t, int3_t, real_t)> func);
 
 inline __attribute__((always_inline)) 
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
@@ -117,9 +125,10 @@ void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
 void zcube2_cell_load(int3_t dim3, VolumeSpan<ZCube2Cell> span, 
                       std::istream& stream)
 {
-    for (int_t z = 0; z < (2 * dim3.z); ++z)
-    for (int_t y = 0; y < (2 * dim3.y); ++y)
-    for (int_t x = 0; x < (2 * dim3.x); ++x)
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
     {
         stream >> span.at(dim3, int3_t{x / 2, y / 2, z / 2})->
             arr[x % 2 + 2 * (y % 2) + 4 * (z % 2)];
@@ -129,12 +138,41 @@ void zcube2_cell_load(int3_t dim3, VolumeSpan<ZCube2Cell> span,
 void zcube2_cell_store(int3_t dim3, VolumeConstSpan<ZCube2Cell> span, 
                        std::ostream& stream)
 {
-    for (int_t z = 0; z < (2 * dim3.z); ++z)
-    for (int_t y = 0; y < (2 * dim3.y); ++y)
-    for (int_t x = 0; x < (2 * dim3.x); ++x)
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
     {
         stream << span.at(dim3, int3_t{x / 2, y / 2, z / 2})->
             arr[x % 2 + 2 * (y % 2) + 4 * (z % 2)] << ' ';
+    }
+}
+
+void zcube2_cell_fill(int3_t dim3, VolumeSpan<ZCube2Cell> span, 
+                      std::function<real_t(int3_t, int3_t)> func)
+{
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
+    {
+        int3_t idx3 = int3_t{x, y, z};
+        span.at(dim3, int3_t{x / 2, y / 2, z / 2})->
+            arr[x % 2 + 2 * (y % 2) + 4 * (z % 2)] = func(grid_size, idx3);
+    }
+}
+
+void zcube2_cell_read(int3_t dim3, VolumeConstSpan<ZCube2Cell> span, 
+                      std::function<void(int3_t, int3_t, real_t)> func)
+{
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * dim3.z};
+    for (int_t z = 0; z < grid_size.z; ++z)
+    for (int_t y = 0; y < grid_size.y; ++y)
+    for (int_t x = 0; x < grid_size.x; ++x)
+    {
+        int3_t idx3 = int3_t{x, y, z};
+        func(grid_size, idx3, span.at(dim3, int3_t{x / 2, y / 2, z / 2})->
+                arr[x % 2 + 2 * (y % 2) + 4 * (z % 2)]);
     }
 }
 
