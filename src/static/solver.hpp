@@ -19,17 +19,24 @@ public:
         ctx_{create_context(cfg_)}
     {}
 
-    Solver(Config<TCell> cfg, std::istream& cfg_in, std::istream& ctx_in) :
-        Solver(std::move(cfg))
-    {
-        CellLayout<TCell>::load(cfg_.grid_size, cfg_.bulk.span(), cfg_in);
-        CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), ctx_in);
-    }
-
-    void proc(std::ostream& out)
+    void proc()
     {
         grid_proc<TCell, NTileRank>(cfg_, ctx_);
-        CellLayout<TCell>::store(cfg_.grid_size, ctx_.ampl_next.span(), out);
+    }
+
+    const Config<TCell>& get_cfg() const
+    {
+        return cfg_;
+    }
+
+    const Context<TCell>& get_ctx() const
+    {
+        return ctx_;
+    }
+
+    void load_ctx(std::istream& from)
+    {
+        CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), from);
     }
 
 private:

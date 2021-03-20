@@ -69,7 +69,7 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
 void vector_cell_load(int3_t dim3, VolumeSpan<VectorCell> span, 
                       std::istream& stream)
 {
-    for (int_t z = 0; z < dim3.z; ++z)
+    for (int_t z = 0; z < (4 * dim3.z); ++z)
     for (int_t y = 0; y < dim3.y; ++y)
     for (int_t x = 0; x < dim3.x; ++x)
     {
@@ -80,7 +80,7 @@ void vector_cell_load(int3_t dim3, VolumeSpan<VectorCell> span,
 void vector_cell_store(int3_t dim3, VolumeConstSpan<VectorCell> span, 
                        std::ostream& stream)
 {
-    for (int_t z = 0; z < dim3.z; ++z)
+    for (int_t z = 0; z < (4 * dim3.z); ++z)
     for (int_t y = 0; y < dim3.y; ++y)
     for (int_t x = 0; x < dim3.x; ++x)
     {

@@ -33,14 +33,12 @@ struct CellLayout<LinearCell>
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         linear_cell_load(grid_size, span, stream);
     }
 
     static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
                       std::ostream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         linear_cell_store(grid_size, span, stream);
     }
 };
@@ -63,14 +61,12 @@ struct CellLayout<ZCube2Cell>
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         zcube2_cell_load(grid_size, span, stream);
     }
 
     static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
                       std::ostream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         zcube2_cell_store(grid_size, span, stream);
     }
 };
@@ -93,14 +89,12 @@ struct CellLayout<VectorCell>
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         vector_cell_load(grid_size, span, stream);
     }
 
     static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
                       std::ostream& stream)
     {
-        grid_size.x <<= NRankX, grid_size.y <<= NRankY, grid_size.z <<= NRankZ;
         vector_cell_store(grid_size, span, stream);
     }
 };

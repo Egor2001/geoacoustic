@@ -20,7 +20,8 @@ public:
             real_grid_size.z >> TCell::NRankZ
         },
         steps_cnt{real_steps_cnt},
-        bulk(grid_size)
+        bulk(grid_size),
+        rho(grid_size)
     {}
 
 public:
@@ -30,7 +31,8 @@ public:
     real_t dspace{0.0};
     real_t dtime{0.0};
 
-    VolumeArray<TCell> bulk; // bulk modulus ~ K
+    VolumeArray<TCell> bulk; // bulk modulus (K)
+    VolumeArray<TCell> rho; // density
 };
 
 } // namespace geo
