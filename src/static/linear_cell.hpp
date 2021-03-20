@@ -17,6 +17,16 @@ struct LinearCell
     real_t data;
 };
 
+void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
+        VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl);
+void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
+        VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl);
+
+void linear_cell_load(int3_t dim3, VolumeSpan<LinearCell> span, 
+                      std::istream& stream);
+void linear_cell_store(int3_t dim3, VolumeConstSpan<LinearCell> span, 
+                       std::ostream& stream);
+
 inline __attribute__((always_inline)) 
 void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
@@ -50,7 +60,6 @@ void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
 #undef AT_
 }
 
-inline __attribute__((always_inline)) 
 void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
 {

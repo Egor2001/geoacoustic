@@ -12,6 +12,16 @@ struct alignas(8 * sizeof(real_t)) ZCube2Cell
     real_t arr[2 * 2 * 2];
 };
 
+void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
+        VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl);
+void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
+        VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl);
+
+void zcube2_cell_load(int3_t dim3, VolumeSpan<ZCube2Cell> span, 
+                      std::istream& stream);
+void zcube2_cell_store(int3_t dim3, VolumeConstSpan<ZCube2Cell> span, 
+                       std::ostream& stream);
+
 inline __attribute__((always_inline)) 
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
@@ -20,7 +30,7 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
 #define PROC_STENCIL_(X, Y, Z) \
-    { \
+    do { \
         const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3., fdc_3 = -1. / 12.; \
         \
         const real_t bulk = \
@@ -57,7 +67,7 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
             2.0 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] - \
             AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
             factor * (u_dx + u_dy + u_dz); \
-    }
+    } while (0)
 
     PROC_STENCIL_(1, 1, 1);
     PROC_STENCIL_(0, 1, 1);
@@ -73,7 +83,6 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
 #undef AT_
 }
 
-inline __attribute__((always_inline)) 
 void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
 {
