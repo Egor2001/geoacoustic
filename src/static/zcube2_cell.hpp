@@ -34,6 +34,9 @@ inline __attribute__((always_inline))
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
 {
+    zcube2_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    return;
+
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
@@ -91,6 +94,7 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
 #undef AT_
 }
 
+inline __attribute__((always_inline)) 
 void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
 {

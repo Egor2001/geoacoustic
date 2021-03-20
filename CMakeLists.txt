@@ -30,15 +30,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -debug all")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
-    set(CMAKE_C_FLAGS_DEBUG 
-        "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_CXX_FLAGS_DEBUG 
-        "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
-
     add_compile_options(-Wall -w3 
                         -Warray-bounds 
                         -Wchar-subscripts 
@@ -65,6 +56,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
        CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
+
+    set(CMAKE_C_FLAGS_DEBUG 
+        "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
+    set(CMAKE_CXX_FLAGS_DEBUG 
+        "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set(CMAKE_LINKER_FLAGS_DEBUG 
+        "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
+    set(CMAKE_LINKER_FLAGS_DEBUG 
+        "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
 
     # TODO: to fix all disabled warnings
     add_compile_options(-mavx -Weverything -pedantic

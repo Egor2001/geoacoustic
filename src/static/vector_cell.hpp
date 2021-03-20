@@ -40,6 +40,9 @@ inline __attribute__((always_inline))
 void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {
+    vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    return;
+
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
 
@@ -119,6 +122,7 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
 #undef AT_
 }
 
+inline __attribute__((always_inline)) 
 void vector_cell_test_proc(int3_t idx3, const Config<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {

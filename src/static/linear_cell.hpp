@@ -36,6 +36,9 @@ inline __attribute__((always_inline))
 void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
 {
+    linear_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    return;
+
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
 
@@ -65,6 +68,7 @@ void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
 #undef AT_
 }
 
+inline __attribute__((always_inline)) 
 void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
 {
