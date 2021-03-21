@@ -2,6 +2,7 @@
 !.gitignore
 bin/
 build/
+result/
 docs/
 !docs/CMakeLists.txt
 tags
