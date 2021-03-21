@@ -1,6 +1,7 @@
 # Custom
 !.gitignore
 bin/
+obj/
 build/
 result/
 docs/
