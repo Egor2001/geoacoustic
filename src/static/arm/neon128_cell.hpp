@@ -71,7 +71,7 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
     float64x2_t z_dec = vextq_f64(AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, 0), 1);
 
     // AT_(ampl, 0, 0, 0) (x[x) (x]x) AT_(ampl, 0, 0, +1)
-    float64x2_t z_dec = vextq_f64(AT_(ampl, 0, 0, 0), AT_(ampl, 0, 0, +1), 1);
+    float64x2_t z_inc = vextq_f64(AT_(ampl, 0, 0, 0), AT_(ampl, 0, 0, +1), 1);
 
     float64x2_t u_dx = 
         vaddq_f64(
@@ -117,7 +117,7 @@ void vector_cell_test_proc(int3_t idx3, const Config<VectorCell>& cfg,
     float64x2_t z_dec = vextq_f64(AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, 0), 1);
 
     // AT_(ampl, 0, 0, 0) (x[x) (x]x) AT_(ampl, 0, 0, +1)
-    float64x2_t z_dec = vextq_f64(AT_(ampl, 0, 0, 0), AT_(ampl, 0, 0, +1), 1);
+    float64x2_t z_inc = vextq_f64(AT_(ampl, 0, 0, 0), AT_(ampl, 0, 0, +1), 1);
 
     AT_(ampl_next, 0, 0, 0) = 
         vmulq_f64(
