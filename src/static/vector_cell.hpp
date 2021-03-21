@@ -3,7 +3,7 @@
 
 #if defined(__x86_64__)
     // TODO: to add FMA and AVX512 versions
-    #if defined(__AVX__)
+    #if true // defined(__AVX__)
         // AVX version
         #include "x86/avx256_cell.hpp"
     #else
