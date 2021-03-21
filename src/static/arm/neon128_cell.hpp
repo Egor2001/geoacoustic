@@ -40,8 +40,8 @@ inline __attribute__((always_inline))
 void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {
-    vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    return;
+    // vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
 
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
@@ -76,19 +76,19 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
     float64x2_t u_dx = 
         vaddq_f64(
             vmulq_f64(fdc_1, AT_(ampl, 0, 0, 0)),
-            vmulq_f64(fdc_2, vsubq_f64(x_inc, x_dec))
+            vmulq_f64(fdc_2, vaddq_f64(x_inc, x_dec))
             );
 
     float64x2_t u_dy = 
         vaddq_f64(
             vmulq_f64(fdc_1, AT_(ampl, 0, 0, 0)),
-            vmulq_f64(fdc_2, vsubq_f64(y_inc, y_dec))
+            vmulq_f64(fdc_2, vaddq_f64(y_inc, y_dec))
             );
 
     float64x2_t u_dz = 
         vaddq_f64(
             vmulq_f64(fdc_1, AT_(ampl, 0, 0, 0)),
-            vmulq_f64(fdc_2, vsubq_f64(z_inc, z_dec))
+            vmulq_f64(fdc_2, vaddq_f64(z_inc, z_dec))
             );
 
     AT_(ampl_next, 0, 0, 0) = 

@@ -40,8 +40,8 @@ inline __attribute__((always_inline))
 void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {
-    vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    return;
+    // vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
 
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
@@ -92,19 +92,19 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
     __m256d u_dx = 
         _mm256_add_pd(
             _mm256_mul_pd(fdc_1, AT_(ampl, 0, 0, 0)),
-            _mm256_mul_pd(fdc_2, _mm256_sub_pd(x_inc, x_dec))
+            _mm256_mul_pd(fdc_2, _mm256_add_pd(x_inc, x_dec))
             );
 
     __m256d u_dy = 
         _mm256_add_pd(
             _mm256_mul_pd(fdc_1, AT_(ampl, 0, 0, 0)),
-            _mm256_mul_pd(fdc_2, _mm256_sub_pd(y_inc, y_dec))
+            _mm256_mul_pd(fdc_2, _mm256_add_pd(y_inc, y_dec))
             );
 
     __m256d u_dz = 
         _mm256_add_pd(
             _mm256_mul_pd(fdc_1, AT_(ampl, 0, 0, 0)),
-            _mm256_mul_pd(fdc_2, _mm256_sub_pd(z_inc, z_dec))
+            _mm256_mul_pd(fdc_2, _mm256_add_pd(z_inc, z_dec))
             );
 
     AT_(ampl_next, 0, 0, 0) = 

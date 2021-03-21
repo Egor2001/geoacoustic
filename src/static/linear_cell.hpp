@@ -36,8 +36,8 @@ inline __attribute__((always_inline))
 void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
 {
-    linear_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    return;
+    // linear_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
 
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
@@ -53,13 +53,13 @@ void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
 
     real_t u_dx = 
         fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, +1, 0, 0) - AT_(ampl, -1, 0, 0));
+        fdc_2 * (AT_(ampl, +1, 0, 0) + AT_(ampl, -1, 0, 0));
     real_t u_dy = 
         fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, 0, +1, 0) - AT_(ampl, 0, -1, 0));
+        fdc_2 * (AT_(ampl, 0, +1, 0) + AT_(ampl, 0, -1, 0));
     real_t u_dz = 
         fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, 0, 0, +1) - AT_(ampl, 0, 0, -1));
+        fdc_2 * (AT_(ampl, 0, 0, +1) + AT_(ampl, 0, 0, -1));
 
     AT_(ampl_next, 0, 0, 0) = 
         2.0 * AT_(ampl, 0, 0, 0) - AT_(ampl_next, 0, 0, 0) + 

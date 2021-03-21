@@ -34,8 +34,8 @@ inline __attribute__((always_inline))
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
 {
-    zcube2_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    return;
+    // zcube2_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
 
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
@@ -55,23 +55,23 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         \
         real_t u_dx = \
             fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] - \
+            fdc_2 * (AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
                      AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)]) + \
-            fdc_3 * (AT_(ampl, +1, 0, 0)[(X) + 2*(Y) + 4*(Z)] - \
+            fdc_3 * (AT_(ampl, +1, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
                      AT_(ampl, -1, 0, 0)[(X) + 2*(Y) + 4*(Z)]); \
         \
         real_t u_dy = \
             fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] - \
+            fdc_2 * (AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
                      AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)]) + \
-            fdc_3 * (AT_(ampl, 0, +1, 0)[(X) + 2*(Y) + 4*(Z)] - \
+            fdc_3 * (AT_(ampl, 0, +1, 0)[(X) + 2*(Y) + 4*(Z)] + \
                      AT_(ampl, 0, -1, 0)[(X) + 2*(Y) + 4*(Z)]); \
         \
         real_t u_dz = \
             fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] - \
+            fdc_2 * (AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
                      AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]) + \
-            fdc_3 * (AT_(ampl, 0, 0, +1)[(X) + 2*(Y) + 4*(Z)] - \
+            fdc_3 * (AT_(ampl, 0, 0, +1)[(X) + 2*(Y) + 4*(Z)] + \
                      AT_(ampl, 0, 0, -1)[(X) + 2*(Y) + 4*(Z)]); \
         \
         AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
