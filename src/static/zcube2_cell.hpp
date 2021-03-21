@@ -12,7 +12,7 @@ struct alignas(8 * sizeof(real_t)) ZCube2Cell
 {
     static constexpr int_t NRankX = 1, NRankY = 1, NRankZ = 1;
 
-    real_t arr[2 * 2 * 2];
+    real_t arr[2 * 2 * 2]{};
 };
 
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
@@ -105,12 +105,12 @@ void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
     (AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
      (AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
       AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, 0, 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, 0, 0, 0)[(X) + 2*(1 - (Y)) + 4*(Z)] + \
-      AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(1 - (Z))] + \
-      AT_(ampl, 2*(X) - 1, (Y), (Z))[(1 - (X)) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, (X), 2*(Y) - 1, (Z))[(X) + 2*(1 - (Y)) + 4*(Z)] + \
-      AT_(ampl, (X), (Y), 2*(Z) - 1)[(X) + 2*(Y) + 4*(1 - (Z))]) / 8.0)
+      AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
+      AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)] + \
+      AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
+      AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)] + \
+      AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
+      AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]) / 8.0)
 
     PROC_STENCIL_(1, 1, 1);
     PROC_STENCIL_(0, 1, 1);

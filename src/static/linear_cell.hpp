@@ -14,7 +14,7 @@ struct LinearCell
 {
     static constexpr int_t NRankX = 0, NRankY = 0, NRankZ = 0;
 
-    real_t data;
+    real_t data{};
 };
 
 void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,

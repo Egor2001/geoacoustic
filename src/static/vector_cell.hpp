@@ -17,7 +17,7 @@ struct alignas(alignof(__m256d)) VectorCell
 
     union {
         __m256d vec;
-        double arr[4];
+        double arr[4]{};
     };
 };
 
