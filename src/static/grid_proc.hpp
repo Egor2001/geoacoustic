@@ -36,10 +36,7 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
         tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
         GEO_ON_DEBUG(fprintf(stderr, "NEXT STEP!\n"));
 
-        if constexpr (NTileRank == 0)
-        {
-            std::swap(ampl_next, ampl);
-        }
+        ConditionalSwapper<NTileRank == 0>::swap(ampl_next, ampl);
     }
 }
 

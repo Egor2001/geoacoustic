@@ -11,10 +11,10 @@ using namespace geo;
 int main()
 {
     using TCell = LinearCell;
-    static constexpr int_t NTileRank = 3;
+    static constexpr int_t NTileRank = 2;
 
     int3_t grid_size = {32, 32, 32};
-    int_t steps_cnt = 8192;
+    int_t steps_cnt = 8; // 8192;
 
     Config<TCell> cfg(grid_size, steps_cnt);
 

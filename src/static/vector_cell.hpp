@@ -151,7 +151,7 @@ void vector_cell_test_proc(int3_t idx3, const Config<VectorCell>& cfg,
             0b0101
             );
 
-    ampl_next->vec = 
+    AT_(ampl_next, 0, 0, 0) = 
         _mm256_mul_pd(
             _mm256_add_pd(
                 _mm256_add_pd(
