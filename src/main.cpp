@@ -17,8 +17,8 @@ static volatile real_t g_result = 0.0;
 
 int main(int argc, char* argv[])
 {
-    using TCell = ZCube2Cell;
-    static constexpr int_t NTileRank = 3;
+    using TCell = ZCube4Cell;
+    static constexpr int_t NTileRank = 0;
 
     if (argc != 3)
     {
