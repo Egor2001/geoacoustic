@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 // #define GEO_DEBUG
 #include "static/types.hpp"
@@ -8,13 +9,31 @@
 
 using namespace geo;
 
-int main()
+// is used only to disable optimizations as fake computation result 
+static volatile real_t g_result = 0.0;
+
+int main(int argc, char* argv[])
 {
     using TCell = ZCube2Cell;
-    static constexpr int_t NTileRank = 0;
+    static constexpr int_t NTileRank = 3;
 
-    int3_t grid_size = {256, 256, 256};
-    int_t steps_cnt = 128;
+    if (argc != 3)
+    {
+        std::cout << "USAGE: " << argv[0] << " CELLS_CNT STEPS_CNT\n";
+    }
+
+    auto usr_cells = strtoul(argv[1], nullptr, 0);
+    auto usr_steps = strtoul(argv[2], nullptr, 0);
+
+    static constexpr unsigned long NTileMask = 
+        ((1 << (NTileRank + TCell::NRankZ)) - 1);
+
+    int3_t grid_size = {
+        static_cast<int_t>(usr_cells & ~NTileMask), 
+        static_cast<int_t>(usr_cells & ~NTileMask), 
+        static_cast<int_t>(usr_cells & ~NTileMask)
+    };
+    int_t steps_cnt = static_cast<int_t>(usr_steps & ~NTileMask);
 
     Config<TCell> cfg(grid_size, steps_cnt);
 
@@ -42,12 +61,12 @@ int main()
 
     solver.proc();
 
-    // solver.read_ctx([](int3_t grid_size, int3_t idx3, real_t ampl) {});
-    // solver.store_result(std::cout);
-    std::cout << std::endl;
+    solver.read_result([](int3_t, int3_t, real_t val) { g_result += val; });
 
+/*
     int_t zcoord = grid_size.z / 2;
     std::vector<real_t> zlayer(grid_size.x * grid_size.y);
+
     solver.read_result([grid_size, zcoord, &zlayer]
         (int3_t, int3_t idx3, real_t val)
         {
@@ -63,7 +82,7 @@ int main()
 
         std::cout << '\n';
     }
-
+*/
     return 0;
 }
 

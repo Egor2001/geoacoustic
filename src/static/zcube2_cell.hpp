@@ -42,6 +42,64 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
 
 #define PROC_STENCIL_(X, Y, Z) \
     do { \
+        const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3.; \
+        \
+        const real_t bulk = \
+            AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
+        const real_t rho = \
+            AT_(cfg.rho.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
+        const real_t speed_sqr = bulk / rho; \
+        \
+        const real_t factor = \
+            speed_sqr * (cfg.dtime * cfg.dtime) / (cfg.dspace * cfg.dspace); \
+        \
+        real_t u_dx = \
+            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
+            fdc_2 * (AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
+                     AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)]); \
+        \
+        real_t u_dy = \
+            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
+            fdc_2 * (AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
+                     AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)]); \
+        \
+        real_t u_dz = \
+            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
+            fdc_2 * (AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
+                     AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]); \
+        \
+        AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
+            2.0 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] - \
+            AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
+            factor * (u_dx + u_dy + u_dz); \
+    } while (0)
+
+    PROC_STENCIL_(1, 1, 1);
+    PROC_STENCIL_(0, 1, 1);
+    PROC_STENCIL_(1, 0, 1);
+    PROC_STENCIL_(1, 1, 0);
+    PROC_STENCIL_(1, 0, 0);
+    PROC_STENCIL_(0, 1, 0);
+    PROC_STENCIL_(0, 0, 1);
+    PROC_STENCIL_(0, 0, 0);
+
+#undef PROC_STENCIL_
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void zcube2_cell_wide_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
+        VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl)
+{
+    // zcube2_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
+
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
+
+#define PROC_STENCIL_(X, Y, Z) \
+    do { \
         const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3., fdc_3 = -1. / 12.; \
         \
         const real_t bulk = \
