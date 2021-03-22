@@ -3,14 +3,17 @@
 #include <cstdlib>
 
 // #define GEO_DEBUG
+#define GEO_BENCH
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"
 
 using namespace geo;
 
+#if defined(GEO_BENCH)
 // is used only to disable optimizations as fake computation result 
 static volatile real_t g_result = 0.0;
+#endif // defined(GEO_BENCH)
 
 int main(int argc, char* argv[])
 {
@@ -20,6 +23,7 @@ int main(int argc, char* argv[])
     if (argc != 3)
     {
         std::cout << "USAGE: " << argv[0] << " CELLS_CNT STEPS_CNT\n";
+        return 1;
     }
 
     auto usr_cells = strtoul(argv[1], nullptr, 0);
@@ -61,9 +65,9 @@ int main(int argc, char* argv[])
 
     solver.proc();
 
+#if defined(GEO_BENCH)
     solver.read_result([](int3_t, int3_t, real_t val) { g_result += val; });
-
-/*
+#else
     int_t zcoord = grid_size.z / 2;
     std::vector<real_t> zlayer(grid_size.x * grid_size.y);
 
@@ -82,7 +86,7 @@ int main(int argc, char* argv[])
 
         std::cout << '\n';
     }
-*/
+#endif // defined(GEO_BENCH)
     return 0;
 }
 

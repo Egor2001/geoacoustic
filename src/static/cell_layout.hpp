@@ -8,6 +8,7 @@
 #include "config.hpp"
 #include "linear_cell.hpp"
 #include "zcube2_cell.hpp"
+#include "zcube4_cell.hpp"
 #include "vector_cell.hpp"
 
 namespace geo {
@@ -23,7 +24,7 @@ struct CellLayout<LinearCell>
     static constexpr int_t NRankY = TCell::NRankY;
     static constexpr int_t NRankZ = TCell::NRankZ;
 
-    inline // __attribute__((force_inline))
+    inline __attribute__((always_inline))
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
@@ -63,7 +64,7 @@ struct CellLayout<ZCube2Cell>
     static constexpr int_t NRankY = TCell::NRankY;
     static constexpr int_t NRankZ = TCell::NRankZ;
 
-    inline // __attribute__((force_inline))
+    inline __attribute__((always_inline))
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
@@ -96,6 +97,46 @@ struct CellLayout<ZCube2Cell>
 };
 
 template<>
+struct CellLayout<ZCube4Cell>
+{
+    using TCell = ZCube4Cell;
+    static constexpr int_t NRankX = TCell::NRankX;
+    static constexpr int_t NRankY = TCell::NRankY;
+    static constexpr int_t NRankZ = TCell::NRankZ;
+
+    inline __attribute__((always_inline))
+    static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
+        VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zcube4_cell_proc(idx3, cfg, ampl_next, ampl);
+    }
+
+    static void load(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::istream& stream)
+    {
+        zcube4_cell_load(grid_size, span, stream);
+    }
+
+    static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                      std::ostream& stream)
+    {
+        zcube4_cell_store(grid_size, span, stream);
+    }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        zcube4_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        zcube4_cell_read(grid_size, span, std::move(func));
+    }
+};
+
+template<>
 struct CellLayout<VectorCell>
 {
     using TCell = VectorCell;
@@ -103,7 +144,7 @@ struct CellLayout<VectorCell>
     static constexpr int_t NRankY = TCell::NRankY;
     static constexpr int_t NRankZ = TCell::NRankZ;
 
-    inline // __attribute__((force_inline))
+    inline __attribute__((always_inline))
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
