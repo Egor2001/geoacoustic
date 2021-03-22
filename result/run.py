@@ -18,12 +18,12 @@ def bench(name, grid, steps):
     end = tm.default_timer()
     return end - start
 
-ncells = 2 ** 30;
+ncells = 2 ** 29;
 # grids = np.array([
 #     16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256
 #     ], dtype=np.uint)
 
-grids = np.array([32, 64, 96, 128, 160, 196, 256], dtype=np.uint)
+grids = np.array([16, 32, 64, 80, 96, 112, 128, 144, 160], dtype=np.uint)
 
 # static_cfg = [
 #         ("linear", 0), ("linear", 1), ("linear", 2), ("linear", 3), 
@@ -31,7 +31,7 @@ grids = np.array([32, 64, 96, 128, 160, 196, 256], dtype=np.uint)
 #         ("zcube2", 0), ("zcube2", 1), ("zcube2", 2), ("zcube2", 3)
 #         ]
 
-static_cfg = [("vector", 0), ("linear", 4), ("zcube2", 0), ("zcube2", 3)]
+static_cfg = [("vector", 0), ("vector", 2), ("zcube2", 0), ("zcube2", 3), ("linear", 0), ("linear", 4)]
 # static_cfg = [("linear", 4), ("vector", 2), ("zcube2", 3)]
 # static_cfg = [("vector", 2),]
 
