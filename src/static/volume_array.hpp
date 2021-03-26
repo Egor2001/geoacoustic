@@ -12,7 +12,7 @@
 namespace geo {
 
 // Const pointer - like wrapper 
-template<typename TData>
+template<typename TData, int_t NGhost = 1u>
 class VolumeConstSpan
 {
 public:
@@ -25,8 +25,8 @@ public:
 
     const TData* at(int3_t dim3, int3_t idx3) const
     {
-        idx3 += int3_t{1, 1, 1};
-        dim3 += int3_t{2, 2, 2};
+        idx3 += int3_t{NGhost, NGhost, NGhost};
+        dim3 += int3_t{2 * NGhost, 2 * NGhost, 2 * NGhost};
         GEO_ON_DEBUG(
             fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
                     static_cast<long long int>(idx3.x), 
@@ -46,7 +46,7 @@ private:
 };
 
 // Pointer - like wrapper 
-template<typename TData>
+template<typename TData, int_t NGhost = 1u>
 class VolumeSpan
 {
 public:
@@ -66,8 +66,8 @@ public:
 
     TData* at(int3_t dim3, int3_t idx3)
     {
-        idx3 += int3_t{1, 1, 1};
-        dim3 += int3_t{2, 2, 2};
+        idx3 += int3_t{NGhost, NGhost, NGhost};
+        dim3 += int3_t{2 * NGhost, 2 * NGhost, 2 * NGhost};
         GEO_ON_DEBUG(
             fprintf(stderr, "AT(%lld, %lld, %lld)\n", 
                     static_cast<long long int>(idx3.x), 
@@ -91,7 +91,7 @@ private:
     TData* data_;
 };
 
-template<typename TD>
+template<typename TD, int_t NGhost = 1u>
 class VolumeArray
 {
 public:
@@ -102,7 +102,7 @@ public:
     {
         GEO_ON_DEBUG(assert(dim3_.x > 0 && dim3_.y > 0 && dim3_.z > 0));
 
-        dim3_ += int3_t{2, 2, 2};
+        dim3_ += int3_t{2 * NGhost, 2 * NGhost, 2 * NGhost};
         data_.resize(dim3_.z * dim3_.y * dim3_.x); 
     }
 
@@ -133,14 +133,14 @@ public:
         return const_cast<VolumeArray*>(this)->operator[](idx3);
     }
 
-    VolumeSpan<TData> span()
+    VolumeSpan<TData, NGhost> span()
     {
-        return VolumeSpan<TData>{data_.data()};
+        return VolumeSpan<TData, NGhost>{data_.data()};
     }
 
     VolumeConstSpan<TData> span() const
     {
-        return VolumeConstSpan<TData>{data_.data()};
+        return VolumeConstSpan<TData, NGhost>{data_.data()};
     }
 
 private:
