@@ -10,8 +10,34 @@
 #include "config.hpp"
 #include "context.hpp"
 #include "tiling_proc.hpp"
+#include "looped_proc.hpp"
 
 namespace geo {
+
+template<typename TCell, int_t NTileRank>
+struct VolumeProcessor;
+
+template<typename TCell>
+struct VolumeProcessor<TCell, 0>
+{
+    static void volume_proc(const Config<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next,
+            VolumeSpan<TCell> ampl)
+    {
+        looped_proc<TCell>(cfg, ampl_next, ampl);
+    }
+};
+
+template<typename TCell, int_t NTileRank>
+struct VolumeProcessor
+{
+    static void volume_proc(const Config<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next,
+            VolumeSpan<TCell> ampl)
+    {
+        tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+    }
+};
 
 template<typename TCell, int_t NTileRank>
 void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
@@ -33,7 +59,7 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
     for (int_t step = 0; step < cfg.steps_cnt; step += NTileSize)
     {
         // process grid depending on tiling
-        tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+        VolumeProcessor<TCell, NTileRank>::volume_proc(cfg, ampl_next, ampl);
         GEO_ON_DEBUG(fprintf(stderr, "NEXT STEP!\n"));
 
         ConditionalSwapper<NTileRank == 0>::swap(ampl_next, ampl);
