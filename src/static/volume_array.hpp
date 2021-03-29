@@ -146,7 +146,7 @@ public:
 
 private:
     int3_t dim3_;
-    std::vector<TData> data_;
+    std::vector<TData, AlignedAllocator<TData>> data_;
 };
 
 } // namespace geo

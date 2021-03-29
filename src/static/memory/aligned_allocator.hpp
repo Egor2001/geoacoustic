@@ -57,7 +57,7 @@ public:
     value_type* allocate(size_type count)
     {
         return static_cast<value_type*>(
-                std::aligned_alloc(align_value, count * sizeof(value_type)));
+                aligned_alloc(align_value, count * sizeof(value_type)));
     }
 
     /**
@@ -65,8 +65,9 @@ public:
      * @param ptr Pointer to the memory being previously allocate()'d
      * @param count [unused] Number of objects the memory contains
      */
-    void deallocate(value_type* ptr, [[maybe_unused]] size_type count) noexcept
+    void deallocate(value_type* ptr, size_type count) noexcept
     {
+        static_cast<void>(count); // [[maybe_unused]] before C++17
         return std::free(ptr);
     }
 
