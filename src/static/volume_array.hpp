@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdio>
 
+#include "memory/aligned_allocator.hpp"
 #include "macro.hpp"
 #include "types.hpp"
 
