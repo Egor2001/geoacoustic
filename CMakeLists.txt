@@ -1,6 +1,17 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
+    cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+    project(geoacoustic VERSION 0.1 LANGUAGES C CXX)
+else()
+    cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+    project(geoacoustic)
+endif()
 
-project(geoacoustic VERSION 0.1 LANGUAGES C CXX)
+if(CMAKE_VERSION VERSION_LESS 3.10)
+    message(AUTHOR_WARNING
+        "You are using an old version of CMake."
+        "Some options such as sanitizers support are unavailable."
+        )
+endif()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -9,24 +20,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
-    set(CMAKE_C_FLAGS_DEBUG 
-        "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_CXX_FLAGS_DEBUG 
-        "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
+        set(CMAKE_C_FLAGS_DEBUG 
+            "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
+        set(CMAKE_CXX_FLAGS_DEBUG 
+            "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+        set(CMAKE_LINKER_FLAGS_DEBUG 
+            "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
+        set(CMAKE_LINKER_FLAGS_DEBUG 
+            "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    endif()
 
     add_compile_options(-mavx -Wall -Wextra -pedantic)
 
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-    message(AUTHOR_WARNING
-            "Intel compiler is temporary generating invalid output 
-            which is different from GNU and Clang results."
-            "Intel compiler support work is in progress."
-            )
-
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -debug all")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
@@ -57,14 +64,16 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
-    set(CMAKE_C_FLAGS_DEBUG 
-        "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_CXX_FLAGS_DEBUG 
-        "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
-    set(CMAKE_LINKER_FLAGS_DEBUG 
-        "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
+        set(CMAKE_C_FLAGS_DEBUG 
+            "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
+        set(CMAKE_CXX_FLAGS_DEBUG 
+            "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+        set(CMAKE_LINKER_FLAGS_DEBUG 
+            "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
+        set(CMAKE_LINKER_FLAGS_DEBUG 
+            "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    endif()
 
     # TODO: to fix all disabled warnings
     add_compile_options(-mavx -Weverything -pedantic
@@ -96,5 +105,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 include_directories(PUBLIC src/ src/static/)
 
-add_subdirectory(docs)
 add_subdirectory(src)
+
+# TODO(@geome_try): 
+# add_subdirectory(docs)
