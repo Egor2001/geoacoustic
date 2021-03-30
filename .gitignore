@@ -3,6 +3,7 @@
 bin/
 obj/
 build/
+bench/
 docs/
 !docs/CMakeLists.txt
 tags

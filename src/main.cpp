@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 // #define GEO_DEBUG
-// #define GEO_BENCH
+#define GEO_BENCH
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"
@@ -18,7 +18,7 @@ static volatile real_t g_result = 0.0;
 int main(int argc, char* argv[])
 {
     using TCell = VectorCell;
-    static constexpr int_t NTileRank = 1;
+    static constexpr int_t NTileRank = 0;
 
     if (argc != 3)
     {

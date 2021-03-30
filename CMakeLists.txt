@@ -20,6 +20,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
+    if(${GEO_BENCH})
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+    endif()
+
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
         set(CMAKE_C_FLAGS_DEBUG 
             "${CMAKE_C_FLAGS_DEBUG}-fno-omit-frame-pointer -fsanitize=address")
@@ -36,6 +40,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -debug all")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
+
+    if(${GEO_BENCH})
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+    endif()
 
     add_compile_options(-Wall -w3 
                         -Warray-bounds 
@@ -63,6 +71,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
        CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
+
+    if(${GEO_BENCH})
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+    endif()
 
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
         set(CMAKE_C_FLAGS_DEBUG 
