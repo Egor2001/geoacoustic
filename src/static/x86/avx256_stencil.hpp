@@ -8,13 +8,13 @@
 namespace geo {
 
 // finite difference coefficients, accuracy = 1
-const __m256d kFDC1_1v = _mm256_set_pd(-5.0 / 2.0);
-const __m256d kFDC1_2v = _mm256_set_pd(4.0 / 3.0);
+const __m256d kFDC1_1v = _mm256_set1_pd(-5.0 / 2.0);
+const __m256d kFDC1_2v = _mm256_set1_pd(4.0 / 3.0);
 
 // finite difference coefficients, accuracy = 2
-const __m256d kFDC2_1v = _mm256_set_pd(-5.0 / 2.0);
-const __m256d kFDC2_2v = _mm256_set_pd(4.0 / 3.0);
-const __m256d kFDC2_3v = _mm256_set_pd(-1.0 / 12.0);
+const __m256d kFDC2_1v = _mm256_set1_pd(-5.0 / 2.0);
+const __m256d kFDC2_2v = _mm256_set1_pd(4.0 / 3.0);
+const __m256d kFDC2_3v = _mm256_set1_pd(-1.0 / 12.0);
 
 } // namespace geo
 
@@ -93,17 +93,20 @@ const __m256d kFDC2_3v = _mm256_set_pd(-1.0 / 12.0);
                 _mm256_add_pd(\
                     _mm256_mul_pd(kFDC2_2v, _mm256_add_pd(x_inc, x_dec)), \
                     _mm256_mul_pd(kFDC2_3v, _mm256_add_pd(x_inc2, x_dec2)) \
-                    ); \
+                    ) \
+                ); \
         __m256d u_dy = _mm256_add_pd(_mm256_mul_pd(kFDC2_1v, cur), \
                 _mm256_add_pd(\
                     _mm256_mul_pd(kFDC2_2v, _mm256_add_pd(y_inc, y_dec)), \
                     _mm256_mul_pd(kFDC2_3v, _mm256_add_pd(y_inc2, y_dec2)) \
-                    ); \
+                    ) \
+                ); \
         __m256d u_dz = _mm256_add_pd(_mm256_mul_pd(kFDC2_1v, cur), \
                 _mm256_add_pd(\
                     _mm256_mul_pd(kFDC2_2v, _mm256_add_pd(z_inc, z_dec)), \
                     _mm256_mul_pd(kFDC2_3v, _mm256_add_pd(z_inc2, z_dec2)) \
-                    ); \
+                    ) \
+                ); \
         \
         (NEXT) = _mm256_add_pd( \
                 _mm256_sub_pd(_mm256_mul_pd( \
@@ -138,5 +141,36 @@ const __m256d kFDC2_3v = _mm256_set_pd(-1.0 / 12.0);
             XDEC, XINC, XDEC2, XINC2, \
             YDEC, YINC, YDEC2, YINC2, \
             ZDEC, ZINC, ZDEC2, ZINC2)
+// TODO:
+#define GEO_PACKED_STENCIL_TEST( \
+        NEXT, CUR, XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        const __m256d cur = (CUR); \
+        \
+        __m256d x_dec = (XDEC); \
+        __m256d x_inc = (XINC); \
+        __m256d y_dec = (YDEC); \
+        __m256d y_inc = (YINC); \
+        /* ZDEC [x | xxx] cur */ \
+        __m256d z_dec = _mm256_shuffle_pd(_mm256_permute2f128_pd( \
+                    (ZDEC), cur, 0b00'10'00'01), cur, 0b0101); \
+        /* cur [xxx | x] ZINC */ \
+        __m256d z_inc = _mm256_shuffle_pd(cur, \
+                _mm256_permute2f128_pd(cur, (ZINC), 0b00'10'00'01), 0b0101); \
+        \
+        (NEXT) = _mm256_mul_pd( \
+                _mm256_add_pd( \
+                    _mm256_add_pd( \
+                        _mm256_add_pd(cur, (NEXT)), \
+                        _mm256_add_pd(z_dec, z_inc) \
+                        ), \
+                    _mm256_add_pd( \
+                        _mm256_add_pd(x_dec, x_inc), \
+                        _mm256_add_pd(y_dec, y_inc) \
+                        ) \
+                    ), \
+                _mm256_set1_pd(1.0 / 8.0) \
+                ); \
+    } while (false)
 
 #endif // GEOACOUSTIC_STATIC_X86_PACKED_STENCIL_HPP_

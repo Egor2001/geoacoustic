@@ -10,6 +10,8 @@
 #include "zcube2_cell.hpp"
 #include "zcube4_cell.hpp"
 #include "vector_cell.hpp"
+#include "zc2vec_cell.hpp"
+#include "zc4vec_cell.hpp"
 
 namespace geo {
 
@@ -173,6 +175,86 @@ struct CellLayout<VectorCell>
                      std::function<void(int3_t, int3_t, real_t)> func)
     {
         vector_cell_read(grid_size, span, std::move(func));
+    }
+};
+
+template<>
+struct CellLayout<ZC2VecCell>
+{
+    using TCell = ZC2VecCell;
+    static constexpr int_t NRankX = TCell::NRankX;
+    static constexpr int_t NRankY = TCell::NRankY;
+    static constexpr int_t NRankZ = TCell::NRankZ;
+
+    inline __attribute__((always_inline))
+    static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
+        VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zc2vec_cell_proc(idx3, cfg, ampl_next, ampl);
+    }
+
+    static void load(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::istream& stream)
+    {
+        zc2vec_cell_load(grid_size, span, stream);
+    }
+
+    static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                      std::ostream& stream)
+    {
+        zc2vec_cell_store(grid_size, span, stream);
+    }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        zc2vec_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        zc2vec_cell_read(grid_size, span, std::move(func));
+    }
+};
+
+template<>
+struct CellLayout<ZC4VecCell>
+{
+    using TCell = ZC4VecCell;
+    static constexpr int_t NRankX = TCell::NRankX;
+    static constexpr int_t NRankY = TCell::NRankY;
+    static constexpr int_t NRankZ = TCell::NRankZ;
+
+    inline __attribute__((always_inline))
+    static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
+        VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zc4vec_cell_proc(idx3, cfg, ampl_next, ampl);
+    }
+
+    static void load(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::istream& stream)
+    {
+        zc4vec_cell_load(grid_size, span, stream);
+    }
+
+    static void store(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                      std::ostream& stream)
+    {
+        zc4vec_cell_store(grid_size, span, stream);
+    }
+
+    static void fill(int3_t grid_size, VolumeSpan<TCell> span, 
+                     std::function<real_t(int3_t, int3_t)> func)
+    {
+        zc4vec_cell_fill(grid_size, span, std::move(func));
+    }
+
+    static void read(int3_t grid_size, VolumeConstSpan<TCell> span, 
+                     std::function<void(int3_t, int3_t, real_t)> func)
+    {
+        zc4vec_cell_read(grid_size, span, std::move(func));
     }
 };
 
