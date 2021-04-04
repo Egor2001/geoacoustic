@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include <pthread.h>
+#include <omp.h>
+
 #include "macro.hpp"
 #include "types.hpp"
 #include "config.hpp"
@@ -156,7 +159,78 @@ struct RecursiveTile
 };
 
 template<typename TCell, int_t NTileRank>
-void tiling_proc(const Config<TCell>& cfg, 
+inline void tile_proc(int3_t idx3, const Config<TCell>& cfg, 
+        VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+{
+    static constexpr int_t NTileSize = 1 << NTileRank;
+
+#define MASK_3(X, Y, Z) ((X) + (Y)*3 + (Z)*9)
+    int8_t type_mask = 0;
+    if (idx3.x == -NTileSize) type_mask += 0 * 1;
+    else if (idx3.x == (cfg.grid_size.x - NTileSize)) type_mask += 2 * 1;
+    else type_mask += 1 * 1;
+
+    if (idx3.y == -NTileSize) type_mask += 0 * 3;
+    else if (idx3.y == (cfg.grid_size.y - NTileSize)) type_mask += 2 * 3;
+    else type_mask += 1 * 3;
+
+    if (idx3.z == -NTileSize) type_mask += 0 * 9;
+    else if (idx3.z == (cfg.grid_size.z - NTileSize)) type_mask += 2 * 9;
+    else type_mask += 1 * 9;
+
+#define CALL_TILE_PROC(TX, TY, TZ) \
+    RecursiveTile<TCell, NTileRank, (TX), (TY), (TZ)>::tile_proc \
+    (idx3, cfg, ampl_next, ampl)
+
+    // TODO: to divide loop into corners, edges, faces and inner part
+    switch (type_mask)
+    {
+#define TA TILE_A
+#define TB TILE_B
+#define TC TILE_C
+        case MASK_3(0,0,0): CALL_TILE_PROC(TA, TA, TA); break;
+        case MASK_3(0,0,1): CALL_TILE_PROC(TA, TA, TB); break;
+        case MASK_3(0,0,2): CALL_TILE_PROC(TA, TA, TC); break;
+        case MASK_3(0,1,0): CALL_TILE_PROC(TA, TB, TA); break;
+        case MASK_3(0,1,1): CALL_TILE_PROC(TA, TB, TB); break;
+        case MASK_3(0,1,2): CALL_TILE_PROC(TA, TB, TC); break;
+        case MASK_3(0,2,0): CALL_TILE_PROC(TA, TC, TA); break;
+        case MASK_3(0,2,1): CALL_TILE_PROC(TA, TC, TB); break;
+        case MASK_3(0,2,2): CALL_TILE_PROC(TA, TC, TC); break;
+
+        case MASK_3(1,0,0): CALL_TILE_PROC(TB, TA, TA); break;
+        case MASK_3(1,0,1): CALL_TILE_PROC(TB, TA, TB); break;
+        case MASK_3(1,0,2): CALL_TILE_PROC(TB, TA, TC); break;
+        case MASK_3(1,1,0): CALL_TILE_PROC(TB, TB, TA); break;
+        case MASK_3(1,1,1): CALL_TILE_PROC(TB, TB, TB); break;
+        case MASK_3(1,1,2): CALL_TILE_PROC(TB, TB, TC); break;
+        case MASK_3(1,2,0): CALL_TILE_PROC(TB, TC, TA); break;
+        case MASK_3(1,2,1): CALL_TILE_PROC(TB, TC, TB); break;
+        case MASK_3(1,2,2): CALL_TILE_PROC(TB, TC, TC); break;
+
+        case MASK_3(2,0,0): CALL_TILE_PROC(TC, TA, TA); break;
+        case MASK_3(2,0,1): CALL_TILE_PROC(TC, TA, TB); break;
+        case MASK_3(2,0,2): CALL_TILE_PROC(TC, TA, TC); break;
+        case MASK_3(2,1,0): CALL_TILE_PROC(TC, TB, TA); break;
+        case MASK_3(2,1,1): CALL_TILE_PROC(TC, TB, TB); break;
+        case MASK_3(2,1,2): CALL_TILE_PROC(TC, TB, TC); break;
+        case MASK_3(2,2,0): CALL_TILE_PROC(TC, TC, TA); break;
+        case MASK_3(2,2,1): CALL_TILE_PROC(TC, TC, TB); break;
+        case MASK_3(2,2,2): CALL_TILE_PROC(TC, TC, TC); break;
+
+        default: assert(!"impossible");
+#undef TA
+#undef TB
+#undef TC
+    }
+
+#undef CALL_TILE_PROC
+
+#undef MASK_3
+}
+
+template<typename TCell, int_t NTileRank>
+void rectangular_tiling_proc(const Config<TCell>& cfg, 
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
 {
     static constexpr int_t NTileSize = 1 << NTileRank;
@@ -166,70 +240,51 @@ void tiling_proc(const Config<TCell>& cfg,
     for (int_t iy = dim3.y - NTileSize; iy >= -NTileSize; iy -= NTileSize)
     for (int_t ix = dim3.x - NTileSize; ix >= -NTileSize; ix -= NTileSize)
     {
-#define MASK_3(X, Y, Z) ((X) + (Y)*3 + (Z)*9)
+        tile_proc<TCell, NTileRank>(int3_t{ix, iy, iz}, cfg, ampl_next, ampl);
+    }
+}
 
-        int8_t type_mask = 0;
-        if (ix == -NTileSize) type_mask += 0 * 1;
-        else if (ix == (cfg.grid_size.x - NTileSize)) type_mask += 2 * 1;
-        else type_mask += 1 * 1;
+template<typename TCell, int_t NTileRank>
+void diagonal_tiling_proc(const Config<TCell>& cfg, 
+        VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+{
+    static constexpr int_t NTileSize = 1 << NTileRank;
 
-        if (iy == -NTileSize) type_mask += 0 * 3;
-        else if (iy == (cfg.grid_size.y - NTileSize)) type_mask += 2 * 3;
-        else type_mask += 1 * 3;
+    int3_t dim3 = cfg.grid_size;
+    int_t diag_max = dim3.x + dim3.y + dim3.z - 3 * NTileSize;
 
-        if (iz == -NTileSize) type_mask += 0 * 9;
-        else if (iz == (cfg.grid_size.z - NTileSize)) type_mask += 2 * 9;
-        else type_mask += 1 * 9;
-
-#define CALL_TILE_PROC(X, Y, Z, TX, TY, TZ) \
-    RecursiveTile<TCell, NTileRank, (TX), (TY), (TZ)>::tile_proc \
-    (int3_t{(X), (Y), (Z)}, cfg, ampl_next, ampl)
-
-        // TODO: to divide loop into corners, edges, faces and inner part
-        switch (type_mask)
+    // Starting thread team
+    #pragma omp parallel
+    {
+        int trd_cnt = omp_get_num_threads();
+        int trd_idx = omp_get_thread_num();
+        int cur_cell_idx = 0;
+        for (int_t diag = diag_max; diag >= 0; diag -= NTileSize)
         {
-#define TA TILE_A
-#define TB TILE_B
-#define TC TILE_C
-            case MASK_3(0,0,0): CALL_TILE_PROC(ix, iy, iz, TA, TA, TA); break;
-            case MASK_3(0,0,1): CALL_TILE_PROC(ix, iy, iz, TA, TA, TB); break;
-            case MASK_3(0,0,2): CALL_TILE_PROC(ix, iy, iz, TA, TA, TC); break;
-            case MASK_3(0,1,0): CALL_TILE_PROC(ix, iy, iz, TA, TB, TA); break;
-            case MASK_3(0,1,1): CALL_TILE_PROC(ix, iy, iz, TA, TB, TB); break;
-            case MASK_3(0,1,2): CALL_TILE_PROC(ix, iy, iz, TA, TB, TC); break;
-            case MASK_3(0,2,0): CALL_TILE_PROC(ix, iy, iz, TA, TC, TA); break;
-            case MASK_3(0,2,1): CALL_TILE_PROC(ix, iy, iz, TA, TC, TB); break;
-            case MASK_3(0,2,2): CALL_TILE_PROC(ix, iy, iz, TA, TC, TC); break;
+            int_t min_z = std::max(static_cast<int_t>(0), 
+                                   diag - (dim3.x + dim3.y - 2 * NTileSize));
+            int_t max_z = std::min(dim3.z - NTileSize, diag);
+            for (int_t iz = min_z; iz <= max_z; iz += NTileSize)
+            {
+                int_t min_y = std::max(static_cast<int_t>(0), 
+                                       diag - (iz + dim3.x - NTileSize));
+                int_t max_y = std::min(dim3.y - NTileSize, diag - iz);
+                for (int_t iy = min_y; iy <= max_y; iy += NTileSize)
+                {
+                    if (cur_cell_idx % trd_cnt == trd_idx)
+                    {
+                        int_t ix = diag - (iy + iz);
+                        tile_proc<TCell, NTileRank>
+                            (int3_t{ix, iy, iz}, cfg, ampl_next, ampl);
+                    }
 
-            case MASK_3(1,0,0): CALL_TILE_PROC(ix, iy, iz, TB, TA, TA); break;
-            case MASK_3(1,0,1): CALL_TILE_PROC(ix, iy, iz, TB, TA, TB); break;
-            case MASK_3(1,0,2): CALL_TILE_PROC(ix, iy, iz, TB, TA, TC); break;
-            case MASK_3(1,1,0): CALL_TILE_PROC(ix, iy, iz, TB, TB, TA); break;
-            case MASK_3(1,1,1): CALL_TILE_PROC(ix, iy, iz, TB, TB, TB); break;
-            case MASK_3(1,1,2): CALL_TILE_PROC(ix, iy, iz, TB, TB, TC); break;
-            case MASK_3(1,2,0): CALL_TILE_PROC(ix, iy, iz, TB, TC, TA); break;
-            case MASK_3(1,2,1): CALL_TILE_PROC(ix, iy, iz, TB, TC, TB); break;
-            case MASK_3(1,2,2): CALL_TILE_PROC(ix, iy, iz, TB, TC, TC); break;
+                    ++cur_cell_idx;
+                }
+            }
 
-            case MASK_3(2,0,0): CALL_TILE_PROC(ix, iy, iz, TC, TA, TA); break;
-            case MASK_3(2,0,1): CALL_TILE_PROC(ix, iy, iz, TC, TA, TB); break;
-            case MASK_3(2,0,2): CALL_TILE_PROC(ix, iy, iz, TC, TA, TC); break;
-            case MASK_3(2,1,0): CALL_TILE_PROC(ix, iy, iz, TC, TB, TA); break;
-            case MASK_3(2,1,1): CALL_TILE_PROC(ix, iy, iz, TC, TB, TB); break;
-            case MASK_3(2,1,2): CALL_TILE_PROC(ix, iy, iz, TC, TB, TC); break;
-            case MASK_3(2,2,0): CALL_TILE_PROC(ix, iy, iz, TC, TC, TA); break;
-            case MASK_3(2,2,1): CALL_TILE_PROC(ix, iy, iz, TC, TC, TB); break;
-            case MASK_3(2,2,2): CALL_TILE_PROC(ix, iy, iz, TC, TC, TC); break;
-
-            default: assert(!"impossible");
-#undef TA
-#undef TB
-#undef TC
+            // Synchronizing thread team before starting next diagonal
+            #pragma omp barrier
         }
-
-#undef CALL_TILE_PROC
-
-#undef MASK_3
     }
 }
 

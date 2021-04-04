@@ -11,6 +11,7 @@
 #include "context.hpp"
 #include "tiling_proc.hpp"
 #include "looped_proc.hpp"
+#include "openmp_proc.hpp"
 
 namespace geo {
 
@@ -24,7 +25,8 @@ struct VolumeProcessor<TCell, 0>
             VolumeSpan<TCell> ampl_next,
             VolumeSpan<TCell> ampl)
     {
-        looped_proc<TCell>(cfg, ampl_next, ampl);
+        rectangular_looped_proc<TCell>(cfg, ampl_next, ampl);
+        // diagonal_looped_proc<TCell>(cfg, ampl_next, ampl);
     }
 };
 
@@ -35,7 +37,8 @@ struct VolumeProcessor
             VolumeSpan<TCell> ampl_next,
             VolumeSpan<TCell> ampl)
     {
-        tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+        // rectangular_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+        diagonal_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
     }
 };
 
