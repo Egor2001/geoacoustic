@@ -42,7 +42,7 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
 
 #define PROC_STENCIL_(X, Y, Z) \
     do { \
-        const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3.; \
+        const real_t fdc_1 = -2.0, fdc_2 = 1.0; \
         \
         const real_t bulk = \
             AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \

@@ -56,7 +56,7 @@ void zcube4_cell_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
         ZDEC, ZDEC_IDX, ZINC, ZINC_IDX \
         ) \
     do { \
-        const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3.; \
+        const real_t fdc_1 = -2.0, fdc_2 = 1.0; \
         \
         const real_t bulk = \
             AT_(cfg.bulk.span(), 0, 0, 0)[IDX]; \

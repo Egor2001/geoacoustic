@@ -8,8 +8,8 @@
 namespace geo {
 
 // finite difference coefficients, accuracy = 1
-const float64x2_t kFDC1_1v = vdupq_n_f64(-5.0 / 2.0);
-const float64x2_t kFDC1_2v = vdupq_n_f64(4.0 / 3.0);
+const float64x2_t kFDC1_1v = vdupq_n_f64(-2.0);
+const float64x2_t kFDC1_2v = vdupq_n_f64(1.0);
 
 // finite difference coefficients, accuracy = 2
 const float64x2_t kFDC2_1v = vdupq_n_f64(-5.0 / 2.0);

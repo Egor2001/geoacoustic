@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 // #define GEO_DEBUG
-#define GEO_BENCH
+// #define GEO_BENCH
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"

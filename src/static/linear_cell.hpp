@@ -42,7 +42,7 @@ void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
 
-    const real_t fdc_1 = -5.0 / 2.0, fdc_2 = 4.0 / 3.0;
+    const real_t fdc_1 = -2.0, fdc_2 = 1.0;
 
     const real_t bulk = AT_(cfg.bulk.span(), 0, 0, 0);
     const real_t rho = AT_(cfg.rho.span(), 0, 0, 0);

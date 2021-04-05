@@ -8,8 +8,8 @@
 namespace geo {
 
 // finite difference coefficients, accuracy = 1
-const __m256d kFDC1_1v = _mm256_set1_pd(-5.0 / 2.0);
-const __m256d kFDC1_2v = _mm256_set1_pd(4.0 / 3.0);
+const __m256d kFDC1_1v = _mm256_set1_pd(-2.0);
+const __m256d kFDC1_2v = _mm256_set1_pd(1.0);
 
 // finite difference coefficients, accuracy = 2
 const __m256d kFDC2_1v = _mm256_set1_pd(-5.0 / 2.0);

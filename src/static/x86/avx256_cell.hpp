@@ -46,8 +46,8 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
 
-    const __m256d fdc_1 = _mm256_set1_pd(-5.0 / 2.0);
-    const __m256d fdc_2 = _mm256_set1_pd(4.0 / 3.0);
+    const __m256d fdc_1 = _mm256_set1_pd(-2.0);
+    const __m256d fdc_2 = _mm256_set1_pd(1.0);
 
     const __m256d bulk = AT_(cfg.bulk.span(), 0, 0, 0);
     const __m256d rho = AT_(cfg.rho.span(), 0, 0, 0);
