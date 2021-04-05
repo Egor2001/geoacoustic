@@ -11,7 +11,6 @@
 #include "context.hpp"
 #include "tiling_proc.hpp"
 #include "looped_proc.hpp"
-#include "openmp_proc.hpp"
 
 namespace geo {
 
