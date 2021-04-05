@@ -24,8 +24,11 @@ struct VolumeProcessor<TCell, 0>
             VolumeSpan<TCell> ampl_next,
             VolumeSpan<TCell> ampl)
     {
+#if !defined(GEO_GRID_LOOPED_DIAGONAL)
         rectangular_looped_proc<TCell>(cfg, ampl_next, ampl);
-        // diagonal_looped_proc<TCell>(cfg, ampl_next, ampl);
+#else
+        diagonal_looped_proc<TCell>(cfg, ampl_next, ampl);
+#endif
     }
 };
 
@@ -36,8 +39,11 @@ struct VolumeProcessor
             VolumeSpan<TCell> ampl_next,
             VolumeSpan<TCell> ampl)
     {
-        // rectangular_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+#if !defined(GEO_GRID_TILING_RECTANGULAR)
         diagonal_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+#else
+        rectangular_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
+#endif
     }
 
     static void volume_proc(const Config<TCell>& cfg, 
@@ -66,12 +72,10 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
     VolumeSpan<TCell> ampl = ctx.ampl.span();
     VolumeSpan<TCell> ampl_next = ctx.ampl_next.span();
 
-    // /*
+#if !defined(GEO_GRID_SINGLE_LAYER)
     VolumeProcessor<TCell, NTileRank>::
         volume_proc(cfg, ampl_next, ampl, cfg.steps_cnt / NTileSize);
-    // */
-
-    /*
+#else
     for (int_t step = 0; step < cfg.steps_cnt; step += NTileSize)
     {
         // process grid depending on tiling
@@ -80,7 +84,7 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
 
         ConditionalSwapper<NTileRank == 0>::swap(ampl_next, ampl);
     }
-    */
+#endif
 }
 
 } // namespace geo

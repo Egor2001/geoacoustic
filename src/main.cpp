@@ -4,6 +4,11 @@
 
 // #define GEO_DEBUG
 // #define GEO_BENCH
+
+// #define GEO_GRID_LOOPED_DIAGONAL
+// #define GEO_GRID_TILING_RECTANGULAR
+// #define GEO_GRID_SINGLE_LAYER
+
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"
