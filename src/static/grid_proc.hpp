@@ -39,6 +39,14 @@ struct VolumeProcessor
         // rectangular_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
         diagonal_tiling_proc<TCell, NTileRank>(cfg, ampl_next, ampl);
     }
+
+    static void volume_proc(const Config<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next,
+            VolumeSpan<TCell> ampl, int_t layers_cnt)
+    {
+        hyperplane_tiling_proc<TCell, NTileRank>
+            (cfg, ampl_next, ampl, layers_cnt);
+    }
 };
 
 template<typename TCell, int_t NTileRank>
@@ -58,6 +66,12 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
     VolumeSpan<TCell> ampl = ctx.ampl.span();
     VolumeSpan<TCell> ampl_next = ctx.ampl_next.span();
 
+    // /*
+    VolumeProcessor<TCell, NTileRank>::
+        volume_proc(cfg, ampl_next, ampl, cfg.steps_cnt / NTileSize);
+    // */
+
+    /*
     for (int_t step = 0; step < cfg.steps_cnt; step += NTileSize)
     {
         // process grid depending on tiling
@@ -66,6 +80,7 @@ void grid_proc(const Config<TCell>& cfg, Context<TCell>& ctx)
 
         ConditionalSwapper<NTileRank == 0>::swap(ampl_next, ampl);
     }
+    */
 }
 
 } // namespace geo
