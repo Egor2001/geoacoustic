@@ -2,6 +2,7 @@
 !.gitignore
 bin/
 obj/
+out/
 build/
 bench/
 docs/
