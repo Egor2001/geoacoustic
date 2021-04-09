@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cmath>
 
 // #define GEO_DEBUG
 // #define GEO_BENCH
@@ -16,14 +17,44 @@
 using namespace geo;
 
 #if defined(GEO_BENCH)
-// is used only to disable optimizations as fake computation result 
+// is used as fake computation result not to be optimized out
 static volatile real_t g_result = 0.0;
 #endif // defined(GEO_BENCH)
 
+struct HaarWavelet
+{
+    int3_t mid;
+    real_t rad;
+    real_t val;
+
+    real_t operator()(int3_t, int3_t idx3)
+    {
+        int3_t rv = idx3 - mid;
+        real_t r2 = static_cast<real_t>(rv.x*rv.x + rv.y*rv.y + rv.z*rv.z);
+
+        return ((r2 < rad * rad) ? val : 0.0);
+    }
+};
+
+struct MHatWavelet
+{
+    int3_t mid;
+    real_t rad;
+    real_t val;
+
+    real_t operator()(int3_t, int3_t idx3)
+    {
+        int3_t rv = idx3 - mid;
+        real_t r2 = static_cast<real_t>(rv.x*rv.x + rv.y*rv.y + rv.z*rv.z);
+
+        return val * (rad * rad - r2) * std::exp(-0.5 * r2);
+    }
+};
+
 int main(int argc, char* argv[])
 {
-    using TCell = ZC4VecCell;
-    static constexpr int_t NTileRank = 4;
+    using TCell = VectorCell;
+    static constexpr int_t NTileRank = 5;
 
     if (argc != 3)
     {
@@ -51,22 +82,14 @@ int main(int argc, char* argv[])
 
     real_t bulk = 1000.0, rho = 0.001;
 
-    int3_t init_idx3 = {grid_size.x / 2, grid_size.y / 2, grid_size.z / 2};
-    real_t init_rad = 10.0, init_val = 1.0;
+    int3_t mid = {grid_size.x / 2, grid_size.y / 2, grid_size.z / 2};
 
     Solver<TCell, NTileRank> solver(cfg);
-
+    
     solver.fill_bulk([bulk](int3_t, int3_t) { return bulk; });
     solver.fill_rho([rho](int3_t, int3_t) { return rho; });
-    solver.fill_init([init_idx3, init_rad, init_val]
-        (int3_t, int3_t idx3) -> real_t
-        {
-            int3_t rv = idx3 - init_idx3;
-            real_t r2 = static_cast<real_t>(rv.x*rv.x + rv.y*rv.y + rv.z*rv.z);
-
-            return ((r2 < init_rad * init_rad) ? init_val : 0.0);
-        }
-    );
+    solver.fill_init(HaarWavelet{ mid, /* rad = */ 3.0, /* val = */ 1.0 });
+    // solver.fill_init(MHatWavelet{ mid, /* rad = */ 5.0, /* val = */ 1.0 });
 
     solver.proc();
 

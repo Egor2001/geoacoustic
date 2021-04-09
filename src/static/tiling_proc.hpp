@@ -1,6 +1,7 @@
 #ifndef GEOACOUSTIC_STATIC_TILING_PROC_HPP_
 #define GEOACOUSTIC_STATIC_TILING_PROC_HPP_
 
+#include <type_traits>
 #include <algorithm>
 #include <cstdio>
 
@@ -70,51 +71,41 @@ struct ConditionalSwapper<true>
     }
 };
 
-template<typename TCell, bool NIsCell>
-struct ConditionalCell;
-
-template<typename TCell>
-struct ConditionalCell<TCell, false>
+// General version (TEnable is for specializations)
+template<typename TCell, int_t NTileRank, 
+         int_t NTypeX, int_t NTypeY, int_t NTypeZ, typename TEnable = void>
+struct RecursiveTile
 {
-    static void cell_proc(int3_t, const Config<TCell>&, 
-            VolumeSpan<TCell>, VolumeSpan<TCell>)
+    static void tile_proc(int3_t, const Config<TCell>&, 
+                          VolumeSpan<TCell>, VolumeSpan<TCell>)
     {}
 };
 
-template<typename TCell>
-struct ConditionalCell<TCell, true>
-{
-    static void cell_proc(int3_t idx3, const Config<TCell>& cfg, 
-            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
-    {
-        GEO_ON_DEBUG(fprintf(stderr, "CELL PROC!\n"));
-        CellLayout<TCell>::cell_proc(idx3, cfg, ampl_next, ampl);
-    }
-};
-
-template<typename TCell, int_t NTileRank, 
-         int_t NTypeX, int_t NTypeY, int_t NTypeZ>
-struct RecursiveTile;
-
+// Specialization for Rank = 0 && Tile is inside Volume
 template<typename TCell, int_t NTypeX, int_t NTypeY, int_t NTypeZ>
-struct RecursiveTile<TCell, 0, NTypeX, NTypeY, NTypeZ>
+struct RecursiveTile<TCell, 0, NTypeX, NTypeY, NTypeZ, 
+    std::enable_if_t<NTypeX != TILE_I && NTypeY != TILE_I && NTypeZ != TILE_I &&
+                     NTypeX != TILE_A && NTypeY != TILE_A && NTypeZ != TILE_A>>
 {
     static void tile_proc(int3_t idx3, const Config<TCell>& cfg, 
             VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
-        // return if out of range
-        static constexpr bool NIsCell = 
-            ((NTypeX == TILE_I || NTypeX == TILE_A || 
-              NTypeY == TILE_I || NTypeY == TILE_A || 
-              NTypeZ == TILE_I || NTypeZ == TILE_A) == false);
-
-        ConditionalCell<TCell, NIsCell>::cell_proc(idx3, cfg, ampl_next, ampl);
+        GEO_ON_DEBUG(fprintf(stderr, "CELL PROC[%d %d %d][%p]!\n", 
+                     static_cast<int>(idx3.x), 
+                     static_cast<int>(idx3.y),
+                     static_cast<int>(idx3.z),
+                     static_cast<void*>(ampl_next.at(int3_t{-1, -1, -1}, 
+                             cfg.grid_size))));
+        CellLayout<TCell>::cell_proc(idx3, cfg, ampl_next, ampl);
     }
 };
 
+// Specialization for Rank >= 1 && Tile is not outside Volume
 template<typename TCell, int_t NTileRank, 
          int_t NTypeX, int_t NTypeY, int_t NTypeZ>
-struct RecursiveTile
+struct RecursiveTile<TCell, NTileRank, NTypeX, NTypeY, NTypeZ, 
+    std::enable_if_t<NTileRank >= 1 &&
+        NTypeX != TILE_I && NTypeY != TILE_I && NTypeZ != TILE_I>>
 {
     static_assert(NTileRank >= 0, "tile rank must be non-negative");
     static_assert(NTileRank != 0, "tile rank is 0 in general template");
@@ -164,6 +155,11 @@ void tile_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
 {
     static constexpr int_t NTileSize = 1 << NTileRank;
+
+    GEO_ON_DEBUG(fprintf(stderr, "TILE PROC [%d %d %d]!\n", 
+                 static_cast<int>(idx3.x), 
+                 static_cast<int>(idx3.y), 
+                 static_cast<int>(idx3.z)));
 
 #define MASK_3(X, Y, Z) ((X) + (Y)*3 + (Z)*9)
     int8_t type_mask = 0;
@@ -232,21 +228,24 @@ void tile_proc(int3_t idx3, const Config<TCell>& cfg,
 
 template<typename TCell, int_t NTileRank>
 inline __attribute__((always_inline)) 
-void diagonal_proc(int trd_idx, int trd_cnt, 
+void diag_proc(int trd_idx, int trd_cnt, 
         int_t cur_diag, int& cell_counter, const Config<TCell>& cfg, 
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
 {
     static constexpr int_t NTileSize = 1 << NTileRank;
 
+    GEO_ON_DEBUG(fprintf(stderr, "DIAG PROC [%d]!\n", 
+                 static_cast<int>(cur_diag)));
+
     int3_t dim3 = cfg.grid_size;
-    int_t min_z = std::max(static_cast<int_t>(0),
+    int_t min_z = std::max(static_cast<int_t>(-NTileSize),
             cur_diag - (dim3.x + dim3.y - 2 * NTileSize));
-    int_t max_z = std::min(dim3.z - NTileSize, cur_diag);
+    int_t max_z = std::min(dim3.z - NTileSize, cur_diag + 2 * NTileSize);
     for (int_t iz = min_z; iz <= max_z; iz += NTileSize)
     {
-        int_t min_y = std::max(static_cast<int_t>(0),
+        int_t min_y = std::max(static_cast<int_t>(-NTileSize),
                 cur_diag - (iz + dim3.x - NTileSize));
-        int_t max_y = std::min(dim3.y - NTileSize, cur_diag - iz);
+        int_t max_y = std::min(dim3.y - NTileSize, cur_diag + NTileSize - iz);
         for (int_t iy = min_y; iy <= max_y; iy += NTileSize)
         {
             if (cell_counter % trd_cnt == trd_idx)
@@ -284,6 +283,7 @@ void diagonal_tiling_proc(const Config<TCell>& cfg,
 
     int3_t dim3 = cfg.grid_size;
     int_t diag_max = dim3.x + dim3.y + dim3.z - 3 * NTileSize;
+    int_t diag_min = -3 * NTileSize;
 
     // Starting thread team
     #pragma omp parallel
@@ -291,9 +291,10 @@ void diagonal_tiling_proc(const Config<TCell>& cfg,
         int trd_cnt = omp_get_num_threads();
         int trd_idx = omp_get_thread_num();
         int cur_cell_idx = 0;
-        for (int_t cur_diag = diag_max; cur_diag >= 0; cur_diag -= NTileSize)
+        for (int_t cur_diag = diag_max; cur_diag >= diag_min; 
+             cur_diag -= NTileSize)
         {
-            diagonal_proc<TCell, NTileRank>
+            diag_proc<TCell, NTileRank>
                 (trd_idx, trd_cnt, cur_diag, cur_cell_idx, 
                  cfg, ampl_next, ampl);
 
@@ -325,12 +326,13 @@ void hyperplane_tiling_proc(const Config<TCell>& cfg,
         {
             for (int_t diag = diag_max; diag > diag_min; diag -= NTileSize)
             {
-                int_t cur_min_diag = std::max(static_cast<int_t>(0),
-                        diag - layer * NDiagInterval * NDiagInterval);
+                int_t cur_min_diag = std::max(
+                        static_cast<int_t>(-3 * NTileSize), 
+                        diag - layer * NDiagInterval * NTileSize);
                 for (int_t cur_diag = diag; cur_diag >= cur_min_diag; 
                      cur_diag -= NDiagInterval * NTileSize)
                 {
-                    diagonal_proc<TCell, NTileRank>
+                    diag_proc<TCell, NTileRank>
                         (trd_idx, trd_cnt, cur_diag, cur_cell_idx, 
                          cfg, ampl_next, ampl);
                 }
@@ -339,14 +341,15 @@ void hyperplane_tiling_proc(const Config<TCell>& cfg,
             }
         }
 
-        for (int_t diag = diag_min; diag >= 0; diag -= NTileSize)
+        for (int_t diag = diag_min; diag >= -3 * NTileSize; diag -= NTileSize)
         {
-            int_t cur_min_diag = std::max(static_cast<int_t>(0), 
-                    diag - (layers_cnt - 1) * NDiagInterval * NDiagInterval);
+            int_t cur_min_diag = std::max(
+                    static_cast<int_t>(-3 * NTileSize), 
+                    diag - (layers_cnt - 1) * NDiagInterval * NTileSize);
             for (int_t cur_diag = diag; cur_diag >= cur_min_diag; 
                  cur_diag -= NDiagInterval * NTileSize)
             {
-                diagonal_proc<TCell, NTileRank>
+                diag_proc<TCell, NTileRank>
                     (trd_idx, trd_cnt, cur_diag, cur_cell_idx, 
                      cfg, ampl_next, ampl);
             }
