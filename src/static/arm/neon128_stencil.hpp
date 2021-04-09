@@ -91,17 +91,17 @@ const float64x2_t kFDC2_3v = vdupq_n_f64(-1.0 / 12.0);
                 vaddq_f64(\
                     vmulq_f64(kFDC2_2v, vaddq_f64(x_inc, x_dec)), \
                     vmulq_f64(kFDC2_3v, vaddq_f64(x_inc2, x_dec2)) \
-                    ); \
+                    )); \
         float64x2_t u_dy = vaddq_f64(vmulq_f64(kFDC2_1v, cur), \
                 vaddq_f64(\
                     vmulq_f64(kFDC2_2v, vaddq_f64(y_inc, y_dec)), \
                     vmulq_f64(kFDC2_3v, vaddq_f64(y_inc2, y_dec2)) \
-                    ); \
+                    )); \
         float64x2_t u_dz = vaddq_f64(vmulq_f64(kFDC2_1v, cur), \
                 vaddq_f64(\
                     vmulq_f64(kFDC2_2v, vaddq_f64(z_inc, z_dec)), \
                     vmulq_f64(kFDC2_3v, vaddq_f64(z_inc2, z_dec2)) \
-                    ); \
+                    )); \
         \
         (NEXT) = vaddq_f64( \
                 vsubq_f64(vmulq_f64( \
@@ -138,5 +138,35 @@ const float64x2_t kFDC2_3v = vdupq_n_f64(-1.0 / 12.0);
             XDEC, XINC, XDEC2, XINC2, \
             YDEC, YINC, YDEC2, YINC2, \
             ZDEC, ZINC, ZDEC2, ZINC2)
+
+// TODO:
+#define GEO_PACKED_STENCIL_TEST( \
+        NEXT, CUR, XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        const float64x2_t cur = (CUR); \
+        \
+        float64x2_t x_dec = (XDEC); \
+        float64x2_t x_inc = (XINC); \
+        float64x2_t y_dec = (YDEC); \
+        float64x2_t y_inc = (YINC); \
+        /* ZDEC [x | x] cur */ \
+        float64x2_t z_dec = vextq_f64((ZDEC), cur, 1); \
+        /* cur [x | x] ZINC */ \
+        float64x2_t z_inc = vextq_f64(cur, (ZINC), 1); \
+        \
+        (NEXT) = vmulq_f64( \
+                vaddq_f64( \
+                    vaddq_f64( \
+                        vaddq_f64(cur, (NEXT)), \
+                        vaddq_f64(z_dec, z_inc) \
+                        ), \
+                    vaddq_f64( \
+                        vaddq_f64(x_dec, x_inc), \
+                        vaddq_f64(y_dec, y_inc) \
+                        ) \
+                    ), \
+                vdupq_n_f64(1.0 / 8.0) \
+                ); \
+    } while (false)
 
 #endif // GEOACOUSTIC_STATIC_ARM_PACKED_STENCIL_HPP_
