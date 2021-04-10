@@ -4,7 +4,7 @@ LD= $(CC)
 ROOT= ../src
 IFLAGS= -I$(ROOT) -I$(ROOT)/static
 
-RELEASE_CFLAGS= -Ofast 
+RELEASE_CFLAGS= -Ofast -march=native
 DEBUG_CFLAGS= -O0 -ggdb
 
 BENCH_CFLAGS= $(RELEASE_CFLAGS) -DGEO_BENCH
