@@ -5,6 +5,8 @@
 #include <functional>
 
 #include "types.hpp"
+#include "config.hpp"
+#include "volume_array.hpp"
 #include "single_stencil.hpp"
 
 namespace geo {
@@ -26,9 +28,17 @@ struct alignas(8 * sizeof(real_t)) ZCube4Cell
     real_t arr[4 * 4 * 4]{};
 };
 
-void zcube4_cell_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
+void zcube4_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<ZCube4Cell>& cfg,
         VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl);
-void zcube4_cell_wide_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
+void zcube4_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<ZCube4Cell>& cfg,
+        VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl);
+void zcube4_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<ZCube4Cell>& cfg,
+        VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl);
+void zcube4_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<ZCube4Cell>& cfg,
         VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl);
 void zcube4_cell_test_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
         VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl);
@@ -44,7 +54,86 @@ void zcube4_cell_read(int3_t dim3, VolumeConstSpan<ZCube4Cell> span,
                       std::function<void(int3_t, int3_t, real_t)> func);
 
 inline __attribute__((always_inline)) 
-void zcube4_cell_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
+void zcube4_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<ZCube4Cell>& cfg,
+        VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl)
+{
+    // zcube4_cell_test_proc(idx3, cfg, ampl_next, ampl);
+    // return;
+
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
+
+#define PROC_STENCIL_(IDX, \
+        XDEC, XDEC_IDX, XINC, XINC_IDX, \
+        YDEC, YDEC_IDX, YINC, YINC_IDX, \
+        ZDEC, ZDEC_IDX, ZINC, ZINC_IDX \
+        ) \
+    GEO_SINGLE_STENCIL_FACTOR( \
+                AT_(cfg.factor.span(), 0, 0, 0)[IDX], \
+                AT_(ampl_next, 0, 0, 0)[IDX], \
+                AT_(ampl, 0, 0, 0)     [IDX], \
+                AT_(ampl, (XDEC), 0, 0)[XDEC_IDX], \
+                AT_(ampl, (XINC), 0, 0)[XINC_IDX], \
+                AT_(ampl, 0, (YDEC), 0)[YDEC_IDX], \
+                AT_(ampl, 0, (YINC), 0)[YINC_IDX], \
+                AT_(ampl, 0, 0, (ZDEC))[ZDEC_IDX], \
+                AT_(ampl, 0, 0, (ZINC))[ZINC_IDX] \
+            )
+
+    // 64 PROC_STENCIL_() calls
+    #include "gen/zcube4_proc_stencil.hpp"
+
+#undef PROC_STENCIL_
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void zcube4_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<ZCube4Cell>& cfg,
+        VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl)
+{
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
+
+#define PROC_STENCIL_(IDX, \
+        XDEC, XDEC_IDX, XINC, XINC_IDX, XDEC2, XDEC2_IDX, XINC2, XINC2_IDX, \
+        YDEC, YDEC_IDX, YINC, YINC_IDX, YDEC2, YDEC2_IDX, YINC2, YINC2_IDX, \
+        ZDEC, ZDEC_IDX, ZINC, ZINC_IDX, ZDEC2, ZDEC2_IDX, ZINC2, ZINC2_IDX \
+        ) \
+    GEO_SINGLE_STENCIL_WIDE_FACTOR( \
+                AT_(cfg.factor.span(), 0, 0, 0)[IDX], \
+                AT_(ampl_next, 0, 0, 0) [IDX], \
+                AT_(ampl, 0, 0, 0)      [IDX], \
+                \
+                AT_(ampl, (XDEC), 0, 0) [XDEC_IDX], \
+                AT_(ampl, (XINC), 0, 0) [XINC_IDX], \
+                AT_(ampl, (XDEC2), 0, 0)[XDEC2_IDX], \
+                AT_(ampl, (XINC2), 0, 0)[XINC2_IDX], \
+                \
+                AT_(ampl, 0, (YDEC), 0) [YDEC_IDX], \
+                AT_(ampl, 0, (YINC), 0) [YINC_IDX], \
+                AT_(ampl, 0, (YDEC2), 0)[YDEC2_IDX], \
+                AT_(ampl, 0, (YINC2), 0)[YINC2_IDX], \
+                \
+                AT_(ampl, 0, 0, (ZDEC)) [ZDEC_IDX], \
+                AT_(ampl, 0, 0, (ZINC)) [ZINC_IDX], \
+                AT_(ampl, 0, 0, (ZDEC2))[ZDEC2_IDX], \
+                AT_(ampl, 0, 0, (ZINC2))[ZINC2_IDX] \
+            )
+
+    // 64 PROC_STENCIL_() calls
+    #include "gen/zcube4_proc_stencil_wide.hpp"
+
+#undef PROC_STENCIL_
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void zcube4_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<ZCube4Cell>& cfg,
         VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl)
 {
     // zcube4_cell_test_proc(idx3, cfg, ampl_next, ampl);
@@ -81,7 +170,8 @@ void zcube4_cell_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
 }
 
 inline __attribute__((always_inline)) 
-void zcube4_cell_wide_proc(int3_t idx3, const Config<ZCube4Cell>& cfg,
+void zcube4_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<ZCube4Cell>& cfg,
         VolumeSpan<ZCube4Cell> ampl_next, VolumeSpan<ZCube4Cell> ampl)
 {
 #define AT_(AMPL, X, Y, Z) \

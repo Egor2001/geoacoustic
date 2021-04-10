@@ -16,6 +16,43 @@ const real_t kFDC2_3s = -1.0 / 12.0;
 
 } // namespace geo
 
+// not vectorized, accuracy = 1, using pre-computed isotropic factor
+#define GEO_SINGLE_STENCIL_FACTOR(FACTOR, NEXT, CUR, \
+                                  XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        (NEXT) = 2.0 * (CUR) - (NEXT) + (FACTOR) * ( \
+                (kFDC1_1s * 3.0) * (CUR) + \
+                kFDC1_2s * ( \
+                    ((XDEC) + (XINC)) + \
+                    ((YDEC) + (YINC)) + \
+                    ((ZDEC) + (ZINC)) \
+                ) \
+            ); \
+    } while (false)
+
+// not vectorized, accuracy = 2, using pre-computed isotropic factor
+#define GEO_SINGLE_STENCIL_WIDE_FACTOR( \
+                FACTOR, NEXT, CUR, \
+                XDEC, XINC, XDEC2, XINC2, \
+                YDEC, YINC, YDEC2, YINC2, \
+                ZDEC, ZINC, ZDEC2, ZINC2 \
+            ) \
+    do { \
+        (NEXT) = 2.0 * (CUR) - (NEXT) + (FACTOR) * ( \
+                (kFDC2_1s * 3.0) * (CUR) + \
+                kFDC2_2s * ( \
+                    ((XDEC) + (XINC)) + \
+                    ((YDEC) + (YINC)) + \
+                    ((ZDEC) + (ZINC)) \
+                ) + \
+                kFDC2_3s * ( \
+                    ((XDEC2) + (XINC2)) + \
+                    ((YDEC2) + (YINC2)) + \
+                    ((ZDEC2) + (ZINC2)) \
+                ) \
+            ); \
+    } while (false)
+
 // not vectorized, accuracy = 1, with mul-by-inv
 #define GEO_SINGLE_STENCIL_USEINV(BULK, INV_RHO, DTIME, INV_DSPACE, NEXT, CUR, \
                                   XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \

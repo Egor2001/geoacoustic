@@ -10,6 +10,8 @@
 // #define GEO_GRID_TILING_RECTANGULAR
 // #define GEO_GRID_SINGLE_LAYER
 
+#define GEO_SIMPLIFIED_CELL
+
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"
@@ -86,8 +88,12 @@ int main(int argc, char* argv[])
 
     Solver<TCell, NTileRank> solver(cfg);
     
-    solver.fill_bulk([bulk](int3_t, int3_t) { return bulk; });
-    solver.fill_rho([rho](int3_t, int3_t) { return rho; });
+    solver.fill_config(
+            [bulk](int3_t, int3_t) { return bulk; },
+            [rho](int3_t, int3_t) { return rho; }
+            );
+    // solver.fill_bulk([bulk](int3_t, int3_t) { return bulk; });
+    // solver.fill_rho([rho](int3_t, int3_t) { return rho; });
     solver.fill_init(HaarWavelet{ mid, /* rad = */ 3.0, /* val = */ 1.0 });
     // solver.fill_init(MHatWavelet{ mid, /* rad = */ 5.0, /* val = */ 1.0 });
 

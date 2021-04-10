@@ -18,6 +18,103 @@ const float64x2_t kFDC2_3v = vdupq_n_f64(-1.0 / 12.0);
 
 } // namespace geo
 
+// vectorized, accuracy = 1, using pre-computed isotropic factor
+#define GEO_PACKED_STENCIL_FACTOR(FACTOR, NEXT, CUR, \
+                                  XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        const float64x2_t cur = (CUR); \
+        /* ZDEC [x | x] cur */ \
+        float64x2_t z_dec = vextq_f64((ZDEC), cur, 1); \
+        /* cur [x | x] ZINC */ \
+        float64x2_t z_inc = vextq_f64(cur, (ZINC), 1); \
+        \
+        (NEXT) = \
+            vaddq_f64( \
+                vsubq_f64( \
+                    vmulq_f64(vdupq_n_f64(2.0), cur), \
+                    (NEXT) \
+                    ), \
+                vmulq_f64( \
+                    (FACTOR), \
+                    vaddq_f64( \
+                        vmulq_f64( \
+                            vmulq_f64(vdupq_n_f64(3.0), kFDC1_1v), \
+                            cur \
+                            ), \
+                        vmulq_f64( \
+                            kFDC1_2v, \
+                            vaddq_f64( \
+                                vaddq_f64( \
+                                    vaddq_f64((XDEC), (XINC)),  \
+                                    vaddq_f64((YDEC), (YINC)) \
+                                    ), \
+                                vaddq_f64(z_dec, z_inc) \
+                                ) \
+                            ) \
+                        ) \
+                    ) \
+                ); \
+    } while (false)
+
+
+// vectorized, accuracy = 2, using pre-computed isotropic factor
+#define GEO_PACKED_STENCIL_WIDE_FACTOR( \
+                FACTOR, NEXT, CUR, \
+                XDEC, XINC, XDEC2, XINC2, \
+                YDEC, YINC, YDEC2, YINC2, \
+                ZDEC, ZINC, ZDEC2, ZINC2 \
+            ) \
+    do { \
+        const float64x2_t cur = (CUR); \
+        /* ZDEC [x | x] cur */ \
+        float64x2_t z_dec = vextq_f64((ZDEC), cur, 1); \
+        /* ZDEC [xx | ] cur */ \
+        float64x2_t z_dec2 = (ZDEC); \
+        /* cur [x | x] ZINC */ \
+        float64x2_t z_inc = vextq_f64(cur, (ZINC), 1); \
+        /* cur [ | xx] ZINC */ \
+        float64x2_t z_inc2 = (ZINC); \
+        \
+        (NEXT) = \
+            vaddq_f64( \
+                vsubq_f64( \
+                    vmulq_f64(vdupq_n_f64(2.0), cur), \
+                    (NEXT) \
+                    ), \
+                vmulq_f64( \
+                    (FACTOR), \
+                    vaddq_f64( \
+                        vmulq_f64( \
+                            vmulq_f64(vdupq_n_f64(3.0), kFDC2_1v), \
+                            cur \
+                            ), \
+                        vaddq_f64( \
+                            vmulq_f64( \
+                                kFDC2_2v, \
+                                vaddq_f64( \
+                                    vaddq_f64( \
+                                        vaddq_f64((XDEC), (XINC)), \
+                                        vaddq_f64((YDEC), (YINC)) \
+                                        ), \
+                                    vaddq_f64(z_dec, z_inc) \
+                                    ) \
+                                ), \
+                            vmulq_f64( \
+                                kFDC2_3v, \
+                                vaddq_f64( \
+                                    vaddq_f64( \
+                                        vaddq_f64((XDEC2), (XINC2)), \
+                                        vaddq_f64((YDEC2), (YINC2)) \
+                                        ), \
+                                    vaddq_f64(z_dec2, z_inc2) \
+                                    ) \
+                                ) \
+                            ) \
+                        ) \
+                    ) \
+                ); \
+    } while (false)
+
 // vectorized, accuracy = 1, with mul-by-inv
 #define GEO_PACKED_STENCIL_USEINV( \
                 BULK, INV_RHO, DTIME, INV_DSPACE, NEXT, CUR, \

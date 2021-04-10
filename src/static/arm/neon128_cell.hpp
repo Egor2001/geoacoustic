@@ -6,7 +6,7 @@
 #include <arm_neon.h>
 
 #include "types.hpp"
-#include "context.hpp"
+#include "config.hpp"
 #include "volume_array.hpp"
 #include "neon128_stencil.hpp"
 
@@ -22,9 +22,17 @@ struct alignas(alignof(float64x2_t)) VectorCell
     };
 };
 
-void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
+void vector_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl);
-void vector_cell_wide_proc(int3_t idx3, const Config<VectorCell>& cfg,
+void vector_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<VectorCell>& cfg,
+        VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl);
+void vector_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<VectorCell>& cfg,
+        VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl);
+void vector_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl);
 void vector_cell_test_proc(int3_t idx3, const Config<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl);
@@ -40,12 +48,54 @@ void vector_cell_read(int3_t dim3, VolumeConstSpan<VectorCell> span,
                       std::function<void(int3_t, int3_t, real_t)> func);
 
 inline __attribute__((always_inline)) 
-void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
+void vector_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {
-    // vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    // return;
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
 
+    GEO_PACKED_STENCIL_FACTOR(
+            AT_(cfg.factor.span(), 0, 0, 0), 
+            AT_(ampl_next, 0, 0, 0), AT_(ampl, 0, 0, 0),
+            AT_(ampl, -1, 0, 0), AT_(ampl, +1, 0, 0), // XDEC XINC
+            AT_(ampl, 0, -1, 0), AT_(ampl, 0, +1, 0), // YDEC YINC
+            AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, +1)  // ZDEC ZINC
+            );
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void vector_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<VectorCell>& cfg,
+        VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
+{
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
+
+    GEO_PACKED_STENCIL_WIDE_FACTOR(
+            AT_(cfg.factor.span(), 0, 0, 0), 
+            AT_(ampl_next, 0, 0, 0), AT_(ampl, 0, 0, 0),
+            // XDEC XINC XDEC2 XINC2
+            AT_(ampl, -1, 0, 0), AT_(ampl, +1, 0, 0),
+            AT_(ampl, -2, 0, 0), AT_(ampl, +2, 0, 0),
+            // YDEC YINC YDEC2 YINC2
+            AT_(ampl, 0, -1, 0), AT_(ampl, 0, +1, 0),
+            AT_(ampl, 0, -2, 0), AT_(ampl, 0, +2, 0),
+            // ZDEC ZINC ZDEC2 ZINC2
+            AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, +1),
+            AT_(ampl, 0, 0, -2), AT_(ampl, 0, 0, +2)
+            );
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void vector_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<VectorCell>& cfg,
+        VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
+{
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
 
@@ -61,12 +111,10 @@ void vector_cell_proc(int3_t idx3, const Config<VectorCell>& cfg,
 }
 
 inline __attribute__((always_inline)) 
-void vector_cell_wide_proc(int3_t idx3, const Config<VectorCell>& cfg,
+void vector_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<VectorCell>& cfg,
         VolumeSpan<VectorCell> ampl_next, VolumeSpan<VectorCell> ampl)
 {
-    // vector_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    // return;
-
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->vec)
 

@@ -4,9 +4,11 @@
 #include <iostream>
 #include <functional>
 
-#include "vector_cell.hpp"
-#include "packed_stencil.hpp"
 #include "types.hpp"
+#include "config.hpp"
+#include "volume_array.hpp"
+#include "packed_stencil.hpp"
+#include "vector_cell.hpp"
 
 namespace geo {
 
@@ -18,9 +20,17 @@ struct alignas(8 * sizeof(VectorCell)) ZC2VecCell
     VectorCell arr[2 * 2 * 2]{};
 };
 
-void zc2vec_cell_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
+void zc2vec_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
-void zc2vec_cell_wide_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
+void zc2vec_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<ZC2VecCell>& cfg,
+        VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
+void zc2vec_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<ZC2VecCell>& cfg,
+        VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
+void zc2vec_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
 void zc2vec_cell_test_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
@@ -36,12 +46,86 @@ void zc2vec_cell_read(int3_t dim3, VolumeConstSpan<ZC2VecCell> span,
                       std::function<void(int3_t, int3_t, real_t)> func);
 
 inline __attribute__((always_inline)) 
-void zc2vec_cell_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
+void zc2vec_cell_simplified_proc(int3_t idx3, 
+        const SimplifiedConfig<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl)
 {
-    // zc2vec_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    // return;
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
+#define PROC_STENCIL_(X, Y, Z) \
+    GEO_PACKED_STENCIL_FACTOR( \
+                AT_(cfg.factor.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl_next, 0, 0, 0)   [(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, 0, 0)        [(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)].vec, \
+                AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)].vec, \
+                AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))].vec, \
+                AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))].vec \
+            )
+
+    PROC_STENCIL_(1, 1, 1);
+    PROC_STENCIL_(0, 1, 1);
+    PROC_STENCIL_(1, 0, 1);
+    PROC_STENCIL_(1, 1, 0);
+    PROC_STENCIL_(1, 0, 0);
+    PROC_STENCIL_(0, 1, 0);
+    PROC_STENCIL_(0, 0, 1);
+    PROC_STENCIL_(0, 0, 0);
+
+#undef PROC_STENCIL_
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void zc2vec_cell_simplified_wide_proc(int3_t idx3, 
+        const SimplifiedConfig<ZC2VecCell>& cfg,
+        VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl)
+{
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
+
+#define PROC_STENCIL_(X, Y, Z) \
+    GEO_PACKED_STENCIL_WIDE_FACTOR( \
+                AT_(cfg.factor.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl_next, 0, 0, 0)   [(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, 0, 0)        [(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, -1, 0, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, +1, 0, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)].vec, \
+                AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)].vec, \
+                AT_(ampl, 0, -1, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, +1, 0)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))].vec, \
+                AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))].vec, \
+                AT_(ampl, 0, 0, -1)[(X) + 2*(Y) + 4*(Z)].vec, \
+                AT_(ampl, 0, 0, +1)[(X) + 2*(Y) + 4*(Z)].vec \
+            )
+
+    PROC_STENCIL_(1, 1, 1);
+    PROC_STENCIL_(0, 1, 1);
+    PROC_STENCIL_(1, 0, 1);
+    PROC_STENCIL_(1, 1, 0);
+    PROC_STENCIL_(1, 0, 0);
+    PROC_STENCIL_(0, 1, 0);
+    PROC_STENCIL_(0, 0, 1);
+    PROC_STENCIL_(0, 0, 0);
+
+#undef PROC_STENCIL_
+
+#undef AT_
+}
+
+inline __attribute__((always_inline)) 
+void zc2vec_cell_proc(int3_t idx3, 
+        const GeneralizedConfig<ZC2VecCell>& cfg,
+        VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl)
+{
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
@@ -75,12 +159,10 @@ void zc2vec_cell_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
 }
 
 inline __attribute__((always_inline)) 
-void zc2vec_cell_wide_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
+void zc2vec_cell_wide_proc(int3_t idx3, 
+        const GeneralizedConfig<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl)
 {
-    // zc2vec_cell_test_proc(idx3, cfg, ampl_next, ampl);
-    // return;
-
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 

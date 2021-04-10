@@ -33,7 +33,7 @@ public:
     {
         return ctx_;
     }
-
+/*
     void load_bulk(std::istream& stream)
     {
         CellLayout<TCell>::load(cfg_.grid_size, cfg_.bulk.span(), 
@@ -45,7 +45,30 @@ public:
         CellLayout<TCell>::load(cfg_.grid_size, cfg_.rho.span(), 
                                 stream);
     }
+*/
 
+    void fill_config(std::function<real_t(int3_t, int3_t)> bulk_func, 
+                     std::function<real_t(int3_t, int3_t)> rho_func)
+    {
+#if defined(GEO_SIMPLIFIED_CELL)
+        CellLayout<TCell>::fill(cfg_.grid_size, cfg_.factor.span(), 
+                [&bulk_func, &rho_func, this]
+                (int3_t dim3, int3_t idx3) -> real_t
+                {
+                    return (bulk_func(dim3, idx3) / rho_func(dim3, idx3)) * 
+                        ((cfg_.dtime * cfg_.dtime) / 
+                         (cfg_.dspace* cfg_.dspace));
+                }
+            );
+
+#else
+        CellLayout<TCell>::fill(cfg_.grid_size, cfg_.bulk.span(), 
+                                std::move(bulk_func));
+        CellLayout<TCell>::fill(cfg_.grid_size, cfg_.rho.span(), 
+                                std::move(rho_func));
+#endif
+    }
+/*
     void fill_bulk(std::function<real_t(int3_t, int3_t)> func)
     {
         CellLayout<TCell>::fill(cfg_.grid_size, cfg_.bulk.span(), 
@@ -57,7 +80,7 @@ public:
         CellLayout<TCell>::fill(cfg_.grid_size, cfg_.rho.span(), 
                                 std::move(func));
     }
-
+*/
     void load_init(std::istream& stream)
     {
         CellLayout<TCell>::load(cfg_.grid_size, ctx_.ampl.span(), 

@@ -18,6 +18,106 @@ const __m256d kFDC2_3v = _mm256_set1_pd(-1.0 / 12.0);
 
 } // namespace geo
 
+// vectorized, accuracy = 1, using pre-computed isotropic factor
+#define GEO_PACKED_STENCIL_FACTOR(FACTOR, NEXT, CUR, \
+                                  XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        const __m256d cur = (CUR); \
+        /* ZDEC [x | xxx] cur */ \
+        __m256d z_dec = _mm256_shuffle_pd(_mm256_permute2f128_pd( \
+                    (ZDEC), cur, 0b00'10'00'01), cur, 0b0101); \
+        /* cur [xxx | x] ZINC */ \
+        __m256d z_inc = _mm256_shuffle_pd(cur, \
+                _mm256_permute2f128_pd(cur, (ZINC), 0b00'10'00'01), 0b0101); \
+        \
+        (NEXT) = \
+            _mm256_add_pd( \
+                _mm256_sub_pd( \
+                    _mm256_mul_pd(_mm256_set1_pd(2.0), cur), \
+                    (NEXT) \
+                    ), \
+                _mm256_mul_pd( \
+                    (FACTOR), \
+                    _mm256_add_pd( \
+                        _mm256_mul_pd( \
+                            _mm256_mul_pd(_mm256_set1_pd(3.0), kFDC1_1v), \
+                            cur \
+                            ), \
+                        _mm256_mul_pd( \
+                            kFDC1_2v, \
+                            _mm256_add_pd( \
+                                _mm256_add_pd( \
+                                    _mm256_add_pd((XDEC), (XINC)),  \
+                                    _mm256_add_pd((YDEC), (YINC)) \
+                                    ), \
+                                _mm256_add_pd(z_dec, z_inc) \
+                                ) \
+                            ) \
+                        ) \
+                    ) \
+                ); \
+    } while (false)
+
+// vectorized, accuracy = 2, using pre-computed isotropic factor
+#define GEO_PACKED_STENCIL_WIDE_FACTOR( \
+                FACTOR, NEXT, CUR, \
+                XDEC, XINC, XDEC2, XINC2, \
+                YDEC, YINC, YDEC2, YINC2, \
+                ZDEC, ZINC, ZDEC2, ZINC2 \
+            ) \
+    do { \
+        const __m256d cur = (CUR); \
+        /* ZDEC [x | xxx] cur */ \
+        __m256d z_dec = _mm256_shuffle_pd(_mm256_permute2f128_pd( \
+                    (ZDEC), cur, 0b00'10'00'01), cur, 0b0101); \
+        /* ZDEC [xx | xx] cur */ \
+        __m256d z_dec2 = _mm256_permute2f128_pd((ZDEC), cur, 0b00'10'00'01); \
+        /* cur [xxx | x] ZINC */ \
+        __m256d z_inc = _mm256_shuffle_pd(cur, \
+                _mm256_permute2f128_pd(cur, (ZINC), 0b00'10'00'01), 0b0101); \
+        /* cur [xx | xx] ZINC */ \
+        __m256d z_inc2 = _mm256_permute2f128_pd(cur, (ZINC), 0b00'10'00'01); \
+        \
+        (NEXT) = \
+            _mm256_add_pd( \
+                _mm256_sub_pd( \
+                    _mm256_mul_pd(_mm256_set1_pd(2.0), cur), \
+                    (NEXT) \
+                    ), \
+                _mm256_mul_pd( \
+                    (FACTOR), \
+                    _mm256_add_pd( \
+                        _mm256_mul_pd( \
+                            _mm256_mul_pd(_mm256_set1_pd(3.0), kFDC2_1v), \
+                            cur \
+                            ), \
+                        _mm256_add_pd( \
+                            _mm256_mul_pd( \
+                                kFDC2_2v, \
+                                _mm256_add_pd( \
+                                    _mm256_add_pd( \
+                                        _mm256_add_pd((XDEC), (XINC)), \
+                                        _mm256_add_pd((YDEC), (YINC)) \
+                                        ), \
+                                    _mm256_add_pd(z_dec, z_inc) \
+                                    ) \
+                                ), \
+                            _mm256_mul_pd( \
+                                kFDC2_3v, \
+                                _mm256_add_pd( \
+                                    _mm256_add_pd( \
+                                        _mm256_add_pd((XDEC2), (XINC2)), \
+                                        _mm256_add_pd((YDEC2), (YINC2)) \
+                                        ), \
+                                    _mm256_add_pd(z_dec2, z_inc2) \
+                                    ) \
+                                ) \
+                            ) \
+                        ) \
+                    ) \
+                ); \
+    } while (false)
+
 // vectorized, accuracy = 1, with mul-by-inv
 #define GEO_PACKED_STENCIL_USEINV(BULK, INV_RHO, DTIME, INV_DSPACE, NEXT, CUR, \
                                   XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \

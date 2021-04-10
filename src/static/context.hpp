@@ -14,7 +14,7 @@ struct Context
 {
     using TCell = TC;
 
-    VolumeArray<TCell> ampl, ampl_next; // amplitude 
+    VolumeArray<TCell> ampl, ampl_next; // current speed values
 };
 
 template<typename TCell>

@@ -30,9 +30,21 @@ struct CellLayout<LinearCell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        linear_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         linear_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        linear_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
@@ -70,9 +82,21 @@ struct CellLayout<ZCube2Cell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        zcube2_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         zcube2_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zcube2_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
@@ -110,9 +134,21 @@ struct CellLayout<ZCube4Cell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        zcube4_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         zcube4_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zcube4_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
@@ -150,9 +186,21 @@ struct CellLayout<VectorCell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        vector_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         vector_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        vector_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
@@ -190,9 +238,21 @@ struct CellLayout<ZC2VecCell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        zc2vec_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         zc2vec_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zc2vec_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
@@ -230,9 +290,21 @@ struct CellLayout<ZC4VecCell>
     static void cell_proc(int3_t idx3, const Config<TCell>& cfg,
         VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
     {
+#if defined(GEO_SIMPLIFIED_CELL)
+        zc4vec_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+#else
         zc4vec_cell_proc(idx3, cfg, ampl_next, ampl);
+#endif
     }
-
+/*
+    inline __attribute__((always_inline))
+    static void cell_simplified_proc(int3_t idx3, 
+            const SimplifiedConfig<TCell>& cfg, 
+            VolumeSpan<TCell> ampl_next, VolumeSpan<TCell> ampl)
+    {
+        zc4vec_cell_simplified_proc(idx3, cfg, ampl_next, ampl);
+    }
+*/
     static void load(int3_t grid_size, VolumeSpan<TCell> span, 
                      std::istream& stream)
     {
