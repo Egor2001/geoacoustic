@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cmath>
 
+#include <chrono>
+
 // #define GEO_DEBUG
 // #define GEO_BENCH
 
@@ -56,7 +58,7 @@ struct MHatWavelet
 int main(int argc, char* argv[])
 {
     using TCell = ZC4VecCell;
-    static constexpr int_t NTileRank = 3;
+    static constexpr int_t NTileRank = 2;
 
     if (argc != 3)
     {
@@ -92,12 +94,26 @@ int main(int argc, char* argv[])
             [bulk](int3_t, int3_t) { return bulk; },
             [rho](int3_t, int3_t) { return rho; }
             );
-    // solver.fill_bulk([bulk](int3_t, int3_t) { return bulk; });
-    // solver.fill_rho([rho](int3_t, int3_t) { return rho; });
     solver.fill_init(HaarWavelet{ mid, /* rad = */ 3.0, /* val = */ 1.0 });
     // solver.fill_init(MHatWavelet{ mid, /* rad = */ 5.0, /* val = */ 1.0 });
 
+// BENCHMARK START
+#if defined(GEO_BENCH)
+    auto bench_start = std::chrono::steady_clock::now();
+#endif
+
     solver.proc();
+
+// BENCHMARK END
+#if defined(GEO_BENCH)
+    auto bench_end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> bench = bench_end - bench_start;
+
+    // PRINT GCELLS/SEC
+    std::cerr << 
+        1e-9 * std::pow(static_cast<double>(usr_cells), 3) * 
+        static_cast<double>(usr_steps) / bench.count() << std::endl;
+#endif
 
 #if defined(GEO_BENCH)
     solver.read_result([](int3_t, int3_t, real_t val) { g_result += val; });
