@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "types.hpp"
+#include "single_stencil.hpp"
 
 namespace geo {
 
@@ -16,6 +17,8 @@ struct alignas(8 * sizeof(real_t)) ZCube2Cell
 };
 
 void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
+        VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl);
+void zcube2_cell_wide_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl);
 void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
         VolumeSpan<ZCube2Cell> ampl_next, VolumeSpan<ZCube2Cell> ampl);
@@ -41,38 +44,19 @@ void zcube2_cell_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
 #define PROC_STENCIL_(X, Y, Z) \
-    do { \
-        const real_t fdc_1 = -2.0, fdc_2 = 1.0; \
-        \
-        const real_t bulk = \
-            AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
-        const real_t rho = \
-            AT_(cfg.rho.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
-        const real_t speed_sqr = bulk / rho; \
-        \
-        const real_t factor = \
-            speed_sqr * (cfg.dtime * cfg.dtime) / (cfg.dspace * cfg.dspace); \
-        \
-        real_t u_dx = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
-                     AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)]); \
-        \
-        real_t u_dy = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
-                     AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)]); \
-        \
-        real_t u_dz = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
-                     AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]); \
-        \
-        AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
-            2.0 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] - \
-            AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            factor * (u_dx + u_dy + u_dz); \
-    } while (0)
+    GEO_SINGLE_STENCIL_USEDIV( \
+                AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(cfg.rho.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                cfg.dtime, cfg.dspace, \
+                AT_(ampl_next, 0, 0, 0)   [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, 0, 0)        [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))], \
+                AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] \
+            )
 
     PROC_STENCIL_(1, 1, 1);
     PROC_STENCIL_(0, 1, 1);
@@ -99,44 +83,25 @@ void zcube2_cell_wide_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
 #define PROC_STENCIL_(X, Y, Z) \
-    do { \
-        const real_t fdc_1 = -5. / 2., fdc_2 = 4. / 3., fdc_3 = -1. / 12.; \
-        \
-        const real_t bulk = \
-            AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
-        const real_t rho = \
-            AT_(cfg.rho.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)]; \
-        const real_t speed_sqr = bulk / rho; \
-        \
-        const real_t factor = \
-            speed_sqr * (cfg.dtime * cfg.dtime) / (cfg.dspace * cfg.dspace); \
-        \
-        real_t u_dx = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
-                     AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)]) + \
-            fdc_3 * (AT_(ampl, +1, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-                     AT_(ampl, -1, 0, 0)[(X) + 2*(Y) + 4*(Z)]); \
-        \
-        real_t u_dy = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
-                     AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)]) + \
-            fdc_3 * (AT_(ampl, 0, +1, 0)[(X) + 2*(Y) + 4*(Z)] + \
-                     AT_(ampl, 0, -1, 0)[(X) + 2*(Y) + 4*(Z)]); \
-        \
-        real_t u_dz = \
-            fdc_1 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            fdc_2 * (AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
-                     AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]) + \
-            fdc_3 * (AT_(ampl, 0, 0, +1)[(X) + 2*(Y) + 4*(Z)] + \
-                     AT_(ampl, 0, 0, -1)[(X) + 2*(Y) + 4*(Z)]); \
-        \
-        AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
-            2.0 * AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] - \
-            AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-            factor * (u_dx + u_dy + u_dz); \
-    } while (0)
+    GEO_SINGLE_STENCIL_WIDE_USEDIV( \
+                AT_(cfg.bulk.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(cfg.rho.span(), 0, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                cfg.dtime, cfg.dspace, \
+                AT_(ampl_next, 0, 0, 0)   [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, 0, 0)        [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, -1, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, +1, 0, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, -1, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, +1, 0)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))], \
+                AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))], \
+                AT_(ampl, 0, 0, -1)[(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, 0, +1)[(X) + 2*(Y) + 4*(Z)] \
+            )
 
     PROC_STENCIL_(1, 1, 1);
     PROC_STENCIL_(0, 1, 1);
@@ -160,15 +125,16 @@ void zcube2_cell_test_proc(int3_t idx3, const Config<ZCube2Cell>& cfg,
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->arr)
 
 #define PROC_STENCIL_(X, Y, Z) \
-    (AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] = \
-     (AT_(ampl, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl_next, 0, 0, 0)[(X) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)] + \
-      AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)] + \
-      AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)] + \
-      AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] + \
-      AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))]) / 8.0)
+    GEO_SINGLE_STENCIL_TEST( \
+                AT_(ampl_next, 0, 0, 0)   [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, 0, 0)        [(X) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, ((X) - 1), 0, 0)[(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, (X), 0, 0)      [(1 - (X)) + 2*(Y) + 4*(Z)], \
+                AT_(ampl, 0, ((Y) - 1), 0)[(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, (Y), 0)      [(X) + 2*(1 - (Y)) + 4*(Z)], \
+                AT_(ampl, 0, 0, ((Z) - 1))[(X) + 2*(Y) + 4*(1 - (Z))], \
+                AT_(ampl, 0, 0, (Z))      [(X) + 2*(Y) + 4*(1 - (Z))] \
+            )
 
     PROC_STENCIL_(1, 1, 1);
     PROC_STENCIL_(0, 1, 1);

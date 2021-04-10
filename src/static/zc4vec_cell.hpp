@@ -160,43 +160,43 @@ void zc4vec_cell_test_proc(int3_t idx3, const Config<ZC4VecCell>& cfg,
 void zc4vec_cell_load(int3_t dim3, VolumeSpan<ZC4VecCell> span, 
                       std::istream& stream)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
-        stream >> span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeX)})->
-            arr[PACK_(x % 4, y % 4, (z / NSizeX) % 4)].arr[z % NSizeX];
+        stream >> span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeZ)})->
+            arr[PACK_(x % 4, y % 4, (z / NSizeZ) % 4)].arr[z % NSizeZ];
     }
 }
 
 void zc4vec_cell_store(int3_t dim3, VolumeConstSpan<ZC4VecCell> span, 
                        std::ostream& stream)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
-        stream << span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeX)})->
-            arr[PACK_(x % 4, y % 4, (z / NSizeX) % 4)].arr[z % NSizeX] << ' ';
+        stream << span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeZ)})->
+            arr[PACK_(x % 4, y % 4, (z / NSizeZ) % 4)].arr[z % NSizeZ] << ' ';
     }
 }
 
 void zc4vec_cell_fill(int3_t dim3, VolumeSpan<ZC4VecCell> span, 
                       std::function<real_t(int3_t, int3_t)> func)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
         int3_t idx3 = int3_t{x, y, z};
-        span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeX)})->
-            arr[PACK_(x % 4, y % 4, (z / NSizeX) % 4)].arr[z % NSizeX] = 
+        span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeZ)})->
+            arr[PACK_(x % 4, y % 4, (z / NSizeZ) % 4)].arr[z % NSizeZ] = 
             func(grid_size, idx3);
     }
 }
@@ -204,16 +204,16 @@ void zc4vec_cell_fill(int3_t dim3, VolumeSpan<ZC4VecCell> span,
 void zc4vec_cell_read(int3_t dim3, VolumeConstSpan<ZC4VecCell> span, 
                       std::function<void(int3_t, int3_t, real_t)> func)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {4 * dim3.x, 4 * dim3.y, 4 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
         int3_t idx3 = int3_t{x, y, z};
         func(grid_size, idx3, 
-                span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeX)})->
-                arr[PACK_(x % 4, y % 4, (z / NSizeX) % 4)].arr[z % NSizeX]);
+                span.at(dim3, int3_t{x / 4, y / 4, z / (4 * NSizeZ)})->
+                arr[PACK_(x % 4, y % 4, (z / NSizeZ) % 4)].arr[z % NSizeZ]);
     }
 }
 

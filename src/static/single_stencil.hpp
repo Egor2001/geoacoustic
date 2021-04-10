@@ -6,8 +6,8 @@
 namespace geo {
 
 // finite difference coefficients, accuracy = 1
-const real_t kFDC1_1s = -5.0 / 2.0;
-const real_t kFDC1_2s = 4.0 / 3.0;
+const real_t kFDC1_1s = -2.0;
+const real_t kFDC1_2s = 1.0;
 
 // finite difference coefficients, accuracy = 2
 const real_t kFDC2_1s = -5.0 / 2.0;
@@ -76,5 +76,13 @@ const real_t kFDC2_3s = -1.0 / 12.0;
             XDEC, XINC, XDEC2, XINC2, \
             YDEC, YINC, YDEC2, YINC2, \
             ZDEC, ZINC, ZDEC2, ZINC2)
+
+// TODO:
+#define GEO_SINGLE_STENCIL_TEST( \
+        NEXT, CUR, XDEC, XINC, YDEC, YINC, ZDEC, ZINC) \
+    do { \
+        (NEXT) = (1.0 / 8.0) * ((CUR) + (NEXT) + \
+                (XDEC) + (XINC) + (YDEC) + (YINC) + (ZDEC) + (ZINC)); \
+    } while (false)
 
 #endif // GEOACOUSTIC_STATIC_SINGLE_STENCIL_HPP_

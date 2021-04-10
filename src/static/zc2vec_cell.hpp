@@ -20,6 +20,8 @@ struct alignas(8 * sizeof(VectorCell)) ZC2VecCell
 
 void zc2vec_cell_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
+void zc2vec_cell_wide_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
+        VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
 void zc2vec_cell_test_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
         VolumeSpan<ZC2VecCell> ampl_next, VolumeSpan<ZC2VecCell> ampl);
 
@@ -153,62 +155,62 @@ void zc2vec_cell_test_proc(int3_t idx3, const Config<ZC2VecCell>& cfg,
 void zc2vec_cell_load(int3_t dim3, VolumeSpan<ZC2VecCell> span, 
                       std::istream& stream)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
-        stream >> span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeX)})->
-            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeX) % 2)].arr[z % NSizeX];
+        stream >> span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeZ)})->
+            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeZ) % 2)].arr[z % NSizeZ];
     }
 }
 
 void zc2vec_cell_store(int3_t dim3, VolumeConstSpan<ZC2VecCell> span, 
                        std::ostream& stream)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
-        stream << span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeX)})->
-            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeX) % 2)]
-            .arr[z % NSizeX] << ' ';
+        stream << span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeZ)})->
+            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeZ) % 2)]
+            .arr[z % NSizeZ] << ' ';
     }
 }
 
 void zc2vec_cell_fill(int3_t dim3, VolumeSpan<ZC2VecCell> span, 
                       std::function<real_t(int3_t, int3_t)> func)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
         int3_t idx3 = int3_t{x, y, z};
-        span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeX)})->
-            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeX) % 2)]
-            .arr[z % NSizeX] = func(grid_size, idx3);
+        span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeZ)})->
+            arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeZ) % 2)]
+            .arr[z % NSizeZ] = func(grid_size, idx3);
     }
 }
 
 void zc2vec_cell_read(int3_t dim3, VolumeConstSpan<ZC2VecCell> span, 
                       std::function<void(int3_t, int3_t, real_t)> func)
 {
-    static constexpr int_t NSizeX = (1 << VectorCell::NRankZ);
-    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeX * dim3.z};
+    static constexpr int_t NSizeZ = (1 << VectorCell::NRankZ);
+    int3_t grid_size = {2 * dim3.x, 2 * dim3.y, 2 * NSizeZ * dim3.z};
     for (int_t z = 0; z < grid_size.z; ++z)
     for (int_t y = 0; y < grid_size.y; ++y)
     for (int_t x = 0; x < grid_size.x; ++x)
     {
         int3_t idx3 = int3_t{x, y, z};
         func(grid_size, idx3, 
-                span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeX)})->
-                arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeX) % 2)]
-                .arr[z % NSizeX]);
+                span.at(dim3, int3_t{x / 2, y / 2, z / (2 * NSizeZ)})->
+                arr[x % 2 + 2 * (y % 2) + 4 * ((z / NSizeZ) % 2)]
+                .arr[z % NSizeZ]);
     }
 }
 

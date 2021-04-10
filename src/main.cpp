@@ -53,8 +53,8 @@ struct MHatWavelet
 
 int main(int argc, char* argv[])
 {
-    using TCell = VectorCell;
-    static constexpr int_t NTileRank = 5;
+    using TCell = ZC4VecCell;
+    static constexpr int_t NTileRank = 3;
 
     if (argc != 3)
     {

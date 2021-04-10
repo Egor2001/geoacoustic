@@ -7,6 +7,7 @@
 #include "types.hpp"
 #include "context.hpp"
 #include "volume_array.hpp"
+#include "single_stencil.hpp"
 
 namespace geo {
 
@@ -18,6 +19,8 @@ struct LinearCell
 };
 
 void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
+        VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl);
+void linear_cell_wide_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl);
 void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
         VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl);
@@ -42,28 +45,37 @@ void linear_cell_proc(int3_t idx3, const Config<LinearCell>& cfg,
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
 
-    const real_t fdc_1 = -2.0, fdc_2 = 1.0;
+    GEO_SINGLE_STENCIL_USEDIV(
+            AT_(cfg.bulk.span(), 0, 0, 0), AT_(cfg.rho.span(), 0, 0, 0), 
+            cfg.dtime, cfg.dspace, AT_(ampl_next, 0, 0, 0), AT_(ampl, 0, 0, 0), 
+            AT_(ampl, -1, 0, 0), AT_(ampl, +1, 0, 0), // XDEC XINC
+            AT_(ampl, 0, -1, 0), AT_(ampl, 0, +1, 0), // YDEC YINC
+            AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, +1)  // ZDEC ZINC
+            );
 
-    const real_t bulk = AT_(cfg.bulk.span(), 0, 0, 0);
-    const real_t rho = AT_(cfg.rho.span(), 0, 0, 0);
-    const real_t speed_sqr = bulk / rho;
+#undef AT_
+}
 
-    const real_t factor = 
-        speed_sqr * (cfg.dtime * cfg.dtime) / (cfg.dspace * cfg.dspace);
+inline __attribute__((always_inline)) 
+void linear_cell_wide_proc(int3_t idx3, const Config<LinearCell>& cfg,
+        VolumeSpan<LinearCell> ampl_next, VolumeSpan<LinearCell> ampl)
+{
+#define AT_(AMPL, X, Y, Z) \
+    ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
 
-    real_t u_dx = 
-        fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, +1, 0, 0) + AT_(ampl, -1, 0, 0));
-    real_t u_dy = 
-        fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, 0, +1, 0) + AT_(ampl, 0, -1, 0));
-    real_t u_dz = 
-        fdc_1 * AT_(ampl, 0, 0, 0) + 
-        fdc_2 * (AT_(ampl, 0, 0, +1) + AT_(ampl, 0, 0, -1));
-
-    AT_(ampl_next, 0, 0, 0) = 
-        2.0 * AT_(ampl, 0, 0, 0) - AT_(ampl_next, 0, 0, 0) + 
-        factor * (u_dx + u_dy + u_dz);
+    GEO_SINGLE_STENCIL_WIDE_USEDIV(
+            AT_(cfg.bulk.span(), 0, 0, 0), AT_(cfg.rho.span(), 0, 0, 0),
+            cfg.dtime, cfg.dspace, AT_(ampl_next, 0, 0, 0), AT_(ampl, 0, 0, 0),
+            // XDEC XINC XDEC2 XINC2
+            AT_(ampl, -1, 0, 0), AT_(ampl, +1, 0, 0),
+            AT_(ampl, -2, 0, 0), AT_(ampl, +2, 0, 0),
+            // YDEC YINC YDEC2 YINC2
+            AT_(ampl, 0, -1, 0), AT_(ampl, 0, +1, 0),
+            AT_(ampl, 0, -2, 0), AT_(ampl, 0, +2, 0),
+            // ZDEC ZINC ZDEC2 ZINC2
+            AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, +1),
+            AT_(ampl, 0, 0, -2), AT_(ampl, 0, 0, +2)
+            );
 
 #undef AT_
 }
@@ -74,7 +86,7 @@ void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
 {
 #define AT_(AMPL, X, Y, Z) \
     ((AMPL).at(cfg.grid_size, idx3 + int3_t{(X), (Y), (Z)})->data)
-
+/*
     AT_(ampl_next, 0, 0, 0) = 
         (AT_(ampl, 0, 0, 0) + 
          AT_(ampl_next, 0, 0, 0) + 
@@ -84,6 +96,13 @@ void linear_cell_test_proc(int3_t idx3, const Config<LinearCell>& cfg,
          AT_(ampl, -1, 0, 0) + 
          AT_(ampl, 0, -1, 0) + 
          AT_(ampl, 0, 0, -1)) / 8.0;
+*/
+
+    GEO_SINGLE_STENCIL_TEST(AT_(ampl_next, 0, 0, 0), AT_(ampl, 0, 0, 0), 
+         AT_(ampl, -1, 0, 0), AT_(ampl, +1, 0, 0), // XDEC XINC
+         AT_(ampl, 0, -1, 0), AT_(ampl, 0, +1, 0), // YDEC YINC
+         AT_(ampl, 0, 0, -1), AT_(ampl, 0, 0, +1)  // ZDEC ZINC
+         );
 
 #undef AT_
 }
