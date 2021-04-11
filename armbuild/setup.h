@@ -1,5 +1,5 @@
-#define GEO_SETUP_CELL ZC4VecCell
-#define GEO_SETUP_RANK 3
+#define GEO_SETUP_CELL ZCube4Cell
+#define GEO_SETUP_RANK 1
 
 #define GEO_SETUP_CELLS_CNT 128
 #define GEO_SETUP_STEPS_CNT 128
