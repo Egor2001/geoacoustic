@@ -14,6 +14,10 @@
 
 #define GEO_SIMPLIFIED_CELL
 
+// contains all setup parameters as macros
+// include directory must be specified in Makefile
+#include "setup.h"
+
 #include "static/types.hpp"
 #include "static/config.hpp"
 #include "static/solver.hpp"
@@ -57,17 +61,24 @@ struct MHatWavelet
 
 int main(int argc, char* argv[])
 {
-    using TCell = ZC4VecCell;
-    static constexpr int_t NTileRank = 2;
+    using TCell = GEO_SETUP_CELL; // ZC4VecCell;
+    static constexpr int_t NTileRank = GEO_SETUP_RANK; // 2;
 
+    // TODO: temporarily replaced because of config via setup.h
+    static_cast<void>(argc);
+    static_cast<void>(argv);
+
+    // TODO: temporarily replaced because of config via setup.h
+    /*
     if (argc != 3)
     {
         std::cout << "USAGE: " << argv[0] << " CELLS_CNT STEPS_CNT\n";
         return 1;
     }
+    */
 
-    auto usr_cells = strtoul(argv[1], nullptr, 0);
-    auto usr_steps = strtoul(argv[2], nullptr, 0);
+    auto usr_cells = GEO_SETUP_CELLS_CNT; // strtoul(argv[1], nullptr, 0);
+    auto usr_steps = GEO_SETUP_STEPS_CNT; // strtoul(argv[2], nullptr, 0);
 
     static constexpr unsigned long NTileMask = 
         ((1 << (NTileRank + TCell::NRankZ)) - 1);
@@ -81,10 +92,10 @@ int main(int argc, char* argv[])
 
     Config<TCell> cfg(grid_size, steps_cnt);
 
-    cfg.dspace = 3.0; 
-    cfg.dtime = 0.001; 
+    cfg.dspace = GEO_SETUP_DSPACE; // 3.0;
+    cfg.dtime = GEO_SETUP_DTIME; // 0.001;
 
-    real_t bulk = 1000.0, rho = 0.001;
+    real_t bulk = GEO_SETUP_BULK, rho = GEO_SETUP_RHO; // 1000.0, 0.001
 
     int3_t mid = {grid_size.x / 2, grid_size.y / 2, grid_size.z / 2};
 
@@ -110,7 +121,7 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> bench = bench_end - bench_start;
 
     // PRINT GCELLS/SEC
-    std::cerr << 
+    std::cout << 
         1e-9 * std::pow(static_cast<double>(usr_cells), 3) * 
         static_cast<double>(usr_steps) / bench.count() << std::endl;
 #endif

@@ -1,10 +1,10 @@
-CC= clang++
+CC= aarch64-linux-gnu-g++ # g++
 LD= $(CC)
 
 ROOT= ../src
-IFLAGS= -I$(ROOT) -I$(ROOT)/static
+IFLAGS= -I$(ROOT) -I$(ROOT)/static -I$(shell pwd)
 
-RELEASE_CFLAGS= -Ofast 
+RELEASE_CFLAGS= -Ofast
 DEBUG_CFLAGS= -O0 -ggdb
 
 BENCH_CFLAGS= $(RELEASE_CFLAGS) -DGEO_BENCH

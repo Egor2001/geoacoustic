@@ -1,8 +1,8 @@
-CC= clang++
+CC= g++ # clang++
 LD= $(CC)
 
 ROOT= ../src
-IFLAGS= -I$(ROOT) -I$(ROOT)/static
+IFLAGS= -I$(ROOT) -I$(ROOT)/static -I$(shell pwd)
 
 RELEASE_CFLAGS= -Ofast -march=native
 DEBUG_CFLAGS= -O0 -ggdb
