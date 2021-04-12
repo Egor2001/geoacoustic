@@ -16,8 +16,8 @@ $ cd armbuild
 $ bash run.sh OUT.txt
 ```
 
-Requires modern C++14 GNU/Clang compiler to be used
-Default compiler is GNU
+Requires modern C++14 GNU/Clang compiler to be used. \\
+Default compiler is GNU.
 
 ## contacts
 - telegram: [@geome\_try](https://t.me/geome_try)
