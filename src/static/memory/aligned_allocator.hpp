@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <cstdlib>
+#include <malloc.h>
 
 /// @brief
 namespace geo {
@@ -56,8 +57,13 @@ public:
      */
     value_type* allocate(size_type count)
     {
+        // TODO: conditional macro
+        return static_cast<value_type*>(
+                memalign(align_value, count * sizeof(value_type)));
+/*
         return static_cast<value_type*>(
                 aligned_alloc(align_value, count * sizeof(value_type)));
+*/
     }
 
     /**
