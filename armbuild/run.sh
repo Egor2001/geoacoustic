@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cells_cnt=256
 steps_cnt=256

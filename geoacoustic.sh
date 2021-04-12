@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 printf "Cloning repository...\n"
 git clone https://github.com/Egor2001/geoacoustic.git
@@ -17,7 +17,7 @@ fi
 out=$(readlink -f 'geoacoustic-result.txt')
 printf "Starting benchmark...\n"
 cd $workdir
-sh run.sh $out
+bash run.sh $out
 
 printf "Cleanup repository...\n"
 rm -rf geoacoustic
