@@ -16,7 +16,7 @@ $ cd armbuild
 $ bash run.sh OUT.txt
 ```
 
-Requires modern C++14 GNU/Clang compiler to be used. \\
+Requires modern C++14 GNU/Clang compiler to be used.  
 Default compiler is GNU.
 
 ## contacts
