@@ -28,7 +28,7 @@ EOF
         printf "[cells=$cells_cnt, steps=$steps_cnt, threads=$trd_cnt]...\n"
         gcells=$(OMP_NUM_THREADS=$trd_cnt ./bin/main $cells_cnt $steps_cnt)
 
-        printf "\nOutput is appended to $(realpath $out)\n"
+        printf "\nOutput is appended to $(readlink -f $out)\n"
         printf "$trd_cnt, $gcells\n" >> $out
     done
 }
@@ -37,7 +37,7 @@ if [ $# -ne 1 ]; then
    printf "USAGE: $0 OUT\n"
    exit 1
 else
-    out=$(realpath $1)
+    out=$(readlink -f $1)
 fi
 
 if [ -z ${OMP_NUM_THREADS} ]; then

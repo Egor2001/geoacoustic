@@ -1,4 +1,4 @@
-CC= aarch64-linux-gnu-g++ # g++
+CC= g++ # aarch64-linux-gnu-g++
 LD= $(CC)
 
 ROOT= ../src

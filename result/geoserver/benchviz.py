@@ -5,25 +5,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print('usage: ', sys.argv[0], ' DATA_CSV OUTPUT_PNG\n')
+    if len(sys.argv) < 3:
+        print('usage: ', sys.argv[0], ' DATA_CSV [DATA_CSV...] OUTPUT_PNG\n')
         sys.exit()
-
-    name = str(sys.argv[1])
-    bench = pd.read_csv(name)
 
     fig, ax = plt.subplots()
     ax.set_title('threads benchmark [512x512x512 cells, 512 ticks]')
     ax.set_xlabel('threads count')
     ax.set_ylabel('GCells/second')
 
-    bound = bench['threads'] * (512**4 / (1e9 * bench['time'][0]))
-    ax.plot(bench['threads'], bound, color='grey', label='bound')
+    for idx in range(1, len(sys.argv) - 1):
+        name = str(sys.argv[idx])
+        bench = pd.read_csv(name)
+        ax.plot(bench['threads'], bench['gcells'], label=name.split(".")[0])
 
-    ax.plot(bench['threads'], 512**4 / (1e9 * bench['time']), 
-            color='red', label=name.split(".")[0])
-
+    ax.set_ylim(bottom=0, top=None)
     ax.legend()
 
-    plt.savefig(str(sys.argv[2]))
+    plt.savefig(str(sys.argv[len(sys.argv) - 1]))
 
