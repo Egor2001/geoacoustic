@@ -10,7 +10,8 @@ DEBUG_CFLAGS= -O0 -ggdb
 BENCH_CFLAGS= $(RELEASE_CFLAGS) -DGEO_BENCH
 PROFILE_CFLAGS= $(BENCH_CFLAGS) -ggdb
 
-CFLAGS= -std=c++14 -mavx -fopenmp -Wall -Wextra -pedantic $(IFLAGS)
+# TODO: to avoid fpermissive
+CFLAGS= -std=c++14 -fpermissive -mavx -fopenmp -Wall -Wextra -pedantic $(IFLAGS)
 LFLAGS= -fopenmp -mavx
 
 BINDIR= bin
