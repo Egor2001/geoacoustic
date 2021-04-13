@@ -2,18 +2,10 @@
 Acoustic wave geomodelling package based on fdtd algorithms
 
 ## run benchmarks
-To build and run benchmarks and store GCell/sec results in OUT.txt.
+To build and run benchmarks and store GCell/sec results in directory OUTDIR.
 
-#### on x86\_64
 ```console
-$ cd x86build
-$ bash run.sh OUT.txt
-```
-
-#### on aarch64
-```console
-$ cd armbuild
-$ bash run.sh OUT.txt
+$ OMP_NUM_THREADS=$(grep -c ^processor /proc/cpuinfo) run.sh OUTDIR
 ```
 
 Requires modern C++14 GNU/Clang compiler to be used.  
