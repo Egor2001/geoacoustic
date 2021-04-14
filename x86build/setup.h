@@ -1,5 +1,7 @@
-    #define GEO_SETUP_CELL LinearCell
-    #define GEO_SETUP_RANK 0
+    #define GEO_UNROLL_TILE1
+    
+    #define GEO_SETUP_CELL ZC4VecCell
+    #define GEO_SETUP_RANK 3
 
     #define GEO_SETUP_CELLS_CNT 256
     #define GEO_SETUP_STEPS_CNT 256

@@ -81,6 +81,17 @@ struct RecursiveTile
     {}
 };
 
+#if defined(GEO_UNROLL_TILE3)
+    #include "gen/spec_tile_rank1.hpp"
+    #include "gen/spec_tile_rank2.hpp"
+    #include "gen/spec_tile_rank3.hpp"
+#elif defined(GEO_UNROLL_TILE2)
+    #include "gen/spec_tile_rank1.hpp"
+    #include "gen/spec_tile_rank2.hpp"
+#elif defined(GEO_UNROLL_TILE1)
+    #include "gen/spec_tile_rank1.hpp"
+#endif
+
 // Specialization for Rank = 0 && Tile is inside Volume
 template<typename TCell, int_t NTypeX, int_t NTypeY, int_t NTypeZ>
 struct RecursiveTile<TCell, 0, NTypeX, NTypeY, NTypeZ, 
