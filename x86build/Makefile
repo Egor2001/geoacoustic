@@ -1,4 +1,4 @@
-CC= clang++
+CC= g++
 LD= $(CC)
 
 ROOT= ../src
